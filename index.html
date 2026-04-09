@@ -3089,6 +3089,7 @@ const SUPABASE_URL = localStorage.getItem('fw_supabase_url') || 'https://vyrrhkk
 const SUPABASE_ANON_KEY = localStorage.getItem('fw_supabase_anon_key') || 'sb_publishable_hz-mFNhVfg5F7im0xOfcAg_Zf46ihr_';
 const SUPABASE_USERS_TABLE = 'fw_users';
 const SUPABASE_PAIRS_TABLE = 'fw_shared_pairs';
+const SUPABASE_ADMIN_USERS_FUNCTION = 'admin-users';
 
 let sharedPairs = [];
 let supabaseClient = null;
@@ -3107,6 +3108,33 @@ function getSupabaseClient() {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
   return supabaseClient;
+}
+
+function getAdminApiAuth() {
+  return sessionStorage.getItem('fw_admin_session_hash') || '';
+}
+
+async function callAdminUsersApi(method = 'GET', payload = null) {
+  if (!isSupabaseConfigured()) throw new Error('Supabase non configuré');
+  const adminAuth = getAdminApiAuth();
+  if (!adminAuth) throw new Error('Session admin invalide');
+
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/${SUPABASE_ADMIN_USERS_FUNCTION}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'apikey': SUPABASE_ANON_KEY,
+      'x-admin-auth': adminAuth
+    },
+    body: payload ? JSON.stringify(payload) : undefined
+  });
+
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(result?.error || 'Erreur API admin');
+  }
+  return result;
 }
 
 window.configureSupabase = function(url, anonKey) {
@@ -3279,6 +3307,15 @@ function normalizeCloudSharedPairRow(row) {
 }
 
 async function replaceUsersInCloud(users) {
+  if (isAdmin) {
+    try {
+      await callAdminUsersApi('POST', { users });
+    } catch (error) {
+      console.error('Erreur sync users cloud (admin):', error.message || error);
+    }
+    return;
+  }
+
   const client = getSupabaseClient();
   if (!client) return;
   const entries = Object.entries(users || {});
@@ -3291,29 +3328,42 @@ async function replaceUsersInCloud(users) {
 }
 
 async function syncUsersFromCloud(options = {}) {
-  const client = getSupabaseClient();
-  if (!client) return getUsersStore();
-
   const username = String(options.username || '').trim();
   const authUserId = String(options.authUserId || '').trim();
   const email = normalizeEmail(options.email || '');
   const adminSync = Boolean(options.admin || isAdmin);
 
-  let query = client.from(SUPABASE_USERS_TABLE).select('*');
-  if (!adminSync) {
-    if (username) query = query.eq('username', username).limit(1);
-    else if (authUserId) query = query.eq('auth_user_id', authUserId).limit(1);
-    else if (email) query = query.eq('email', email).limit(1);
-    else if (currentUser) query = query.eq('username', currentUser).limit(1);
-    else return getUsersStore();
+  if (adminSync) {
+    try {
+      const result = await callAdminUsersApi('GET');
+      const users = {};
+      (result.users || []).forEach(row => {
+        users[row.username] = normalizeCloudUserRow(row);
+      });
+      localStorage.setItem('fw_users', JSON.stringify(users));
+      return users;
+    } catch (error) {
+      console.error('Erreur lecture users cloud (admin):', error.message || error);
+      return getUsersStore();
+    }
   }
+
+  const client = getSupabaseClient();
+  if (!client) return getUsersStore();
+
+  let query = client.from(SUPABASE_USERS_TABLE).select('*');
+  if (username) query = query.eq('username', username).limit(1);
+  else if (authUserId) query = query.eq('auth_user_id', authUserId).limit(1);
+  else if (email) query = query.eq('email', email).limit(1);
+  else if (currentUser) query = query.eq('username', currentUser).limit(1);
+  else return getUsersStore();
 
   const { data, error } = await query;
   if (error) {
     console.error('Erreur lecture users cloud:', error.message);
     return getUsersStore();
   }
-  const users = adminSync ? {} : getUsersStore();
+  const users = getUsersStore();
   (data || []).forEach(row => {
     users[row.username] = normalizeCloudUserRow(row);
   });
@@ -3663,6 +3713,7 @@ async function login() {
     isAdmin = true;
     currentUser = ADMIN_USERNAME;
     sessionStorage.setItem('fw_admin_session', '1');
+    sessionStorage.setItem('fw_admin_session_hash', getAdminPasswordHash());
     showMainApp();
     return;
   }
@@ -3763,6 +3814,7 @@ async function logout() {
   localStorage.removeItem('fw_current_user');
   sessionStorage.removeItem('fw_current_user');
   sessionStorage.removeItem('fw_admin_session');
+  sessionStorage.removeItem('fw_admin_session_hash');
   if (typeof window.refreshSubscriptionTrigger === 'function') {
     window.refreshSubscriptionTrigger();
   }
