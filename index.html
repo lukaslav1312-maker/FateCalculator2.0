@@ -1491,7 +1491,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
 <div style="max-width:1200px;margin:0 auto;padding:20px 20px 60px;">
 
   <div class="section-title"><h2>💎 Coût en Gemmes — Bâtiments</h2></div>
-  <p style="color:var(--dim);font-size:.85rem;margin:0 0 28px;max-width:700px;line-height:1.6;">Sélectionne ton niveau actuel pour chaque bâtiment. Le tableau affichera le coût en gemmes pour chaque upgrade restant jusqu'au niveau&nbsp;30.</p>
+  <p style="color:var(--dim);font-size:.85rem;margin:0 0 28px;max-width:700px;line-height:1.6;">Sélectionne ton niveau actuel puis renseigne tes items déjà en stock. Le calcul déduit automatiquement tes items pour afficher les gemmes réellement restantes jusqu'au niveau&nbsp;30.</p>
 
   <!-- 3 building cards -->
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:24px;margin-bottom:36px;">
@@ -1510,16 +1510,22 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
             style="flex:1;min-width:100px;accent-color:var(--gold);cursor:pointer;">
           <span id="gbLvlDisplay-beast" style="font-family:'Cinzel',serif;font-size:1.05rem;color:var(--gold);min-width:38px;text-align:center;background:rgba(200,148,42,.12);border:1px solid rgba(200,148,42,.3);border-radius:3px;padding:2px 6px;">1</span>
         </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+          <label for="gbOwnedItems-beast" style="font-size:.74rem;color:var(--dim);white-space:nowrap;">Items en stock :</label>
+          <input id="gbOwnedItems-beast" type="number" min="0" step="1" value="0" oninput="gbUpdate('beast')"
+            style="width:120px;padding:6px 8px;background:rgba(255,255,255,.05);border:1px solid rgba(64,192,192,.35);border-radius:3px;color:#8de2e2;font-size:.82rem;">
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
           <div style="text-align:center;padding:9px 8px;background:rgba(200,148,42,.1);border:1px solid rgba(200,148,42,.3);border-radius:4px;">
-            <div style="font-size:.66rem;color:var(--dim);margin-bottom:3px;">💎 Gemmes → Lvl 30</div>
+            <div style="font-size:.66rem;color:var(--dim);margin-bottom:3px;">💎 Gemmes restantes → Lvl 30</div>
             <div id="gbTotal-beast" style="font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:var(--gold);letter-spacing:.03em;">742,400</div>
           </div>
           <div style="text-align:center;padding:9px 8px;background:rgba(64,192,192,.08);border:1px solid rgba(64,192,192,.28);border-radius:4px;">
-            <div style="font-size:.66rem;color:var(--dim);margin-bottom:3px;">📦 Preuves de Maîtrise</div>
+            <div style="font-size:.66rem;color:var(--dim);margin-bottom:3px;">📦 Preuves restantes</div>
             <div id="gbItemTotal-beast" style="font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:#40c0c0;letter-spacing:.03em;">46,400</div>
           </div>
         </div>
+        <div id="gbSavings-beast" style="margin:-6px 0 12px;text-align:right;font-size:.72rem;color:#9ceeee;">Économie gemmes via items: 0</div>
         <div style="max-height:300px;overflow-y:auto;border:1px solid rgba(255,255,255,.07);border-radius:3px;">
           <table style="width:100%;border-collapse:collapse;font-size:.79rem;">
             <thead>
@@ -1550,16 +1556,22 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
             style="flex:1;min-width:100px;accent-color:var(--gold);cursor:pointer;">
           <span id="gbLvlDisplay-sentry" style="font-family:'Cinzel',serif;font-size:1.05rem;color:var(--gold);min-width:38px;text-align:center;background:rgba(200,148,42,.12);border:1px solid rgba(200,148,42,.3);border-radius:3px;padding:2px 6px;">1</span>
         </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+          <label for="gbOwnedItems-sentry" style="font-size:.74rem;color:var(--dim);white-space:nowrap;">Items en stock :</label>
+          <input id="gbOwnedItems-sentry" type="number" min="0" step="1" value="0" oninput="gbUpdate('sentry')"
+            style="width:120px;padding:6px 8px;background:rgba(255,255,255,.05);border:1px solid rgba(64,192,192,.35);border-radius:3px;color:#8de2e2;font-size:.82rem;">
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
           <div style="text-align:center;padding:9px 8px;background:rgba(200,148,42,.1);border:1px solid rgba(200,148,42,.3);border-radius:4px;">
-            <div style="font-size:.66rem;color:var(--dim);margin-bottom:3px;">💎 Gemmes → Lvl 30</div>
+            <div style="font-size:.66rem;color:var(--dim);margin-bottom:3px;">💎 Gemmes restantes → Lvl 30</div>
             <div id="gbTotal-sentry" style="font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:var(--gold);letter-spacing:.03em;">652,600</div>
           </div>
           <div style="text-align:center;padding:9px 8px;background:rgba(64,192,192,.08);border:1px solid rgba(64,192,192,.28);border-radius:4px;">
-            <div style="font-size:.66rem;color:var(--dim);margin-bottom:3px;">📦 Boîtes à outils</div>
+            <div style="font-size:.66rem;color:var(--dim);margin-bottom:3px;">📦 Outils restants</div>
             <div id="gbItemTotal-sentry" style="font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:#40c0c0;letter-spacing:.03em;">65,260</div>
           </div>
         </div>
+        <div id="gbSavings-sentry" style="margin:-6px 0 12px;text-align:right;font-size:.72rem;color:#9ceeee;">Économie gemmes via items: 0</div>
         <div style="max-height:300px;overflow-y:auto;border:1px solid rgba(255,255,255,.07);border-radius:3px;">
           <table style="width:100%;border-collapse:collapse;font-size:.79rem;">
             <thead>
@@ -1590,16 +1602,22 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
             style="flex:1;min-width:100px;accent-color:var(--gold);cursor:pointer;">
           <span id="gbLvlDisplay-warHall" style="font-family:'Cinzel',serif;font-size:1.05rem;color:var(--gold);min-width:38px;text-align:center;background:rgba(200,148,42,.12);border:1px solid rgba(200,148,42,.3);border-radius:3px;padding:2px 6px;">1</span>
         </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+          <label for="gbOwnedItems-warHall" style="font-size:.74rem;color:var(--dim);white-space:nowrap;">Items en stock :</label>
+          <input id="gbOwnedItems-warHall" type="number" min="0" step="1" value="0" oninput="gbUpdate('warHall')"
+            style="width:120px;padding:6px 8px;background:rgba(255,255,255,.05);border:1px solid rgba(64,192,192,.35);border-radius:3px;color:#8de2e2;font-size:.82rem;">
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
           <div style="text-align:center;padding:9px 8px;background:rgba(200,148,42,.1);border:1px solid rgba(200,148,42,.3);border-radius:4px;">
-            <div style="font-size:.66rem;color:var(--dim);margin-bottom:3px;">💎 Gemmes → Lvl 30</div>
+            <div style="font-size:.66rem;color:var(--dim);margin-bottom:3px;">💎 Gemmes restantes → Lvl 30</div>
             <div id="gbTotal-warHall" style="font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:var(--gold);letter-spacing:.03em;">652,600</div>
           </div>
           <div style="text-align:center;padding:9px 8px;background:rgba(64,192,192,.08);border:1px solid rgba(64,192,192,.28);border-radius:4px;">
-            <div style="font-size:.66rem;color:var(--dim);margin-bottom:3px;">📦 Badges de victoire</div>
+            <div style="font-size:.66rem;color:var(--dim);margin-bottom:3px;">📦 Badges restants</div>
             <div id="gbItemTotal-warHall" style="font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:#40c0c0;letter-spacing:.03em;">65,260</div>
           </div>
         </div>
+        <div id="gbSavings-warHall" style="margin:-6px 0 12px;text-align:right;font-size:.72rem;color:#9ceeee;">Économie gemmes via items: 0</div>
         <div style="max-height:300px;overflow-y:auto;border:1px solid rgba(255,255,255,.07);border-radius:3px;">
           <table style="width:100%;border-collapse:collapse;font-size:.79rem;">
             <thead>
@@ -1622,15 +1640,15 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
   <div class="panel">
     <div class="panel-hd"><h3>📊 Résumé Total — 3 Bâtiments combinés</h3></div>
     <div class="panel-body">
-      <p style="font-size:.8rem;color:var(--dim);margin:0 0 16px;">Coût cumulé en gemmes et items pour monter les 3 bâtiments jusqu'au niveau 30 depuis ton niveau actuel.</p>
+      <p style="font-size:.8rem;color:var(--dim);margin:0 0 16px;">Coût cumulé restant après déduction de tes items déjà en stock.</p>
       <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:.84rem;">
           <thead>
             <tr style="border-bottom:1px solid rgba(200,148,42,.35);">
               <th style="padding:8px 12px;text-align:left;color:var(--gold-dim);font-weight:500;font-family:'Cinzel',serif;font-size:.74rem;letter-spacing:.07em;">Bâtiment</th>
               <th style="padding:8px 12px;text-align:center;color:var(--gold-dim);font-weight:500;font-family:'Cinzel',serif;font-size:.74rem;letter-spacing:.07em;">Lvl actuel</th>
-              <th style="padding:8px 12px;text-align:right;color:#8de2e2;font-weight:500;font-family:'Cinzel',serif;font-size:.74rem;letter-spacing:.07em;">📦 Items → 30</th>
-              <th style="padding:8px 12px;text-align:right;color:var(--gold-dim);font-weight:500;font-family:'Cinzel',serif;font-size:.74rem;letter-spacing:.07em;">💎 Gemmes → 30</th>
+              <th style="padding:8px 12px;text-align:right;color:#8de2e2;font-weight:500;font-family:'Cinzel',serif;font-size:.74rem;letter-spacing:.07em;">📦 Items restants</th>
+              <th style="padding:8px 12px;text-align:right;color:var(--gold-dim);font-weight:500;font-family:'Cinzel',serif;font-size:.74rem;letter-spacing:.07em;">💎 Gemmes restantes</th>
             </tr>
           </thead>
           <tbody>
@@ -5628,48 +5646,64 @@ function gbFmt(n) {
 function gbUpdate(key) {
   const slider = document.getElementById('gbSlider-' + key);
   const currentLvl = parseInt(slider.value, 10);
+  const ownedInput = document.getElementById('gbOwnedItems-' + key);
+  const ownedItems = Math.max(0, parseInt((ownedInput && ownedInput.value) || '0', 10) || 0);
 
   document.getElementById('gbLvlDisplay-' + key).textContent = currentLvl;
 
   const { costs, items } = GB_DATA[key];
   let html = '';
-  let totalGems = 0, totalItems = 0;
+  let totalGemsRaw = 0, totalItemsRaw = 0;
 
   for (let i = currentLvl - 1; i < 29; i++) {
-    totalGems  += costs[i];
-    totalItems += items[i];
+    totalGemsRaw  += costs[i];
+    totalItemsRaw += items[i];
   }
 
-  let runGems = 0, runItems = 0;
+  let remainingOwned = ownedItems;
+  let totalGems = 0;
+  let runGems = 0;
   for (let i = currentLvl - 1; i < 29; i++) {
     const fromLvl = i + 1;
     const toLvl   = i + 2;
     const gems    = costs[i];
     const itms    = items[i];
-    runGems  += gems;
-    runItems += itms;
+
+    // Les items couvrent d'abord les upgrades les plus proches.
+    const usedItems = Math.min(remainingOwned, itms);
+    remainingOwned -= usedItems;
+    const ratio = gems / itms;
+    const remainingGemsForStep = Math.max(0, Math.round((itms - usedItems) * ratio));
+
+    totalGems += remainingGemsForStep;
+    runGems += remainingGemsForStep;
+
     const isLast = (toLvl === 30);
     html += `<tr style="border-bottom:1px solid rgba(255,255,255,.04);${isLast?'background:rgba(200,148,42,.07);':''}">
       <td style="padding:5px 8px;color:${isLast?'var(--gold)':'var(--white)'}">
         <span style="font-size:.68rem;color:var(--dim);">Lvl ${fromLvl}</span> → <strong>Lvl ${toLvl}</strong>
       </td>
       <td style="padding:5px 8px;text-align:right;color:#8de2e2;">${gbFmt(itms)}</td>
-      <td style="padding:5px 8px;text-align:right;color:var(--white);">${gbFmt(gems)}</td>
+      <td style="padding:5px 8px;text-align:right;color:var(--white);">${gbFmt(remainingGemsForStep)}</td>
       <td style="padding:5px 8px;text-align:right;color:${isLast?'var(--gold)':'var(--dim)'};">${gbFmt(runGems)}</td>
     </tr>`;
   }
 
+  const totalItems = Math.max(0, totalItemsRaw - ownedItems);
+  const savings = Math.max(0, totalGemsRaw - totalGems);
+
   if (currentLvl >= 30) {
     html = `<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--gold);font-family:'Cinzel',serif;font-size:.85rem;">✅ Niveau 30 atteint !</td></tr>`;
-    totalGems = 0; totalItems = 0;
+    totalGems = 0;
   }
 
   document.getElementById('gbBody-'      + key).innerHTML = html;
-  document.getElementById('gbTotal-'     + key).textContent = totalGems  > 0 ? gbFmt(totalGems)  : '0';
-  document.getElementById('gbItemTotal-' + key).textContent = totalItems > 0 ? gbFmt(totalItems) : '0';
+  document.getElementById('gbTotal-'     + key).textContent = gbFmt(totalGems);
+  document.getElementById('gbItemTotal-' + key).textContent = gbFmt(totalItems);
   document.getElementById('gbSumLvl-'    + key).textContent = currentLvl;
-  document.getElementById('gbSumVal-'    + key).textContent = totalGems  > 0 ? gbFmt(totalGems)  : '0';
-  document.getElementById('gbSumItem-'   + key).textContent = totalItems > 0 ? gbFmt(totalItems) : '0';
+  document.getElementById('gbSumVal-'    + key).textContent = gbFmt(totalGems);
+  document.getElementById('gbSumItem-'   + key).textContent = gbFmt(totalItems);
+  document.getElementById('gbSavings-'   + key).textContent = `Économie gemmes via items: ${gbFmt(savings)}`;
 
   gbUpdateGrandTotal();
 }
