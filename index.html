@@ -1375,7 +1375,33 @@ let isAdmin = false;
 
 // ── Identifiants admin (hardcodés – ne pas stocker dans fw_users) ──
 const ADMIN_USERNAME = 'ADMIN_FW';
-const ADMIN_PASSWORD_HASH = hashPassword('REMOVED_SECRET'); // calculé au runtime
+const ADMIN_PASSWORD_HASH_KEY = 'fw_admin_password_hash';
+
+function getAdminPasswordHash() {
+  return localStorage.getItem(ADMIN_PASSWORD_HASH_KEY) || '';
+}
+
+function ensureAdminPasswordConfigured() {
+  if (getAdminPasswordHash()) return true;
+  const pwd = prompt('Aucun mot de passe admin configure. Definis-en un nouveau (8+ caracteres).');
+  if (!pwd) {
+    alert('Configuration admin annulee.');
+    return false;
+  }
+  if (pwd.length < 8) {
+    alert('Mot de passe trop court (minimum 8 caracteres).');
+    return false;
+  }
+  localStorage.setItem(ADMIN_PASSWORD_HASH_KEY, hashPassword(pwd));
+  alert('Mot de passe admin configure localement. Reconnecte-toi avec ce mot de passe.');
+  return true;
+}
+
+function rotateAdminPassword(nextPassword) {
+  if (!nextPassword || nextPassword.length < 8) return false;
+  localStorage.setItem(ADMIN_PASSWORD_HASH_KEY, hashPassword(nextPassword));
+  return true;
+}
 
 function getUsersStore() {
   return JSON.parse(localStorage.getItem('fw_users') || '{}');
@@ -1585,7 +1611,8 @@ function login() {
   const users = JSON.parse(localStorage.getItem('fw_users') || '{}');
   // Vérification compte admin
   if (username === ADMIN_USERNAME) {
-    if (hashPassword(password) !== ADMIN_PASSWORD_HASH) { showError('loginError', '✕ Mot de passe admin incorrect.'); return; }
+    if (!ensureAdminPasswordConfigured()) { showError('loginError', '⚠ Configure d abord un mot de passe admin.'); return; }
+    if (hashPassword(password) !== getAdminPasswordHash()) { showError('loginError', '✕ Mot de passe admin incorrect.'); return; }
     isAdmin = true;
     currentUser = ADMIN_USERNAME;
     sessionStorage.setItem('fw_admin_session', '1');
