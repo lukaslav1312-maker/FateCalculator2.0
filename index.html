@@ -933,7 +933,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
             <div><label>× 10 min</label><input type="number" id="j2a10"  value="0" min="0" oninput="convAcc('j2')"></div>
             <div><label>× 30 min</label><input type="number" id="j2a30"  value="0" min="0" oninput="convAcc('j2')"></div>
             <div><label>× 1h</label><input type="number" id="j2a60"   value="0" min="0" oninput="convAcc('j2')"></div>
-            <div><label>× 3h</label><input type="number" id="j2a180"  value="0" min="0" oninput="convAcc('j2')"></div>
+            <div><label>× 4h</label><input type="number" id="j2a240"  value="0" min="0" oninput="convAcc('j2')"></div>
             <div><label>× 8h</label><input type="number" id="j2a480"  value="0" min="0" oninput="convAcc('j2')"></div>
             <div><label>× 24h</label><input type="number" id="j2a1440" value="0" min="0" oninput="convAcc('j2')"></div>
           </div>
@@ -1010,7 +1010,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
               <div><label>× 10 min</label><input type="number" id="j3a10"  value="0" min="0" oninput="convAcc('j3')"></div>
               <div><label>× 30 min</label><input type="number" id="j3a30"  value="0" min="0" oninput="convAcc('j3')"></div>
               <div><label>× 1h</label><input type="number" id="j3a60"   value="0" min="0" oninput="convAcc('j3')"></div>
-              <div><label>× 3h</label><input type="number" id="j3a180"  value="0" min="0" oninput="convAcc('j3')"></div>
+              <div><label>× 4h</label><input type="number" id="j3a240"  value="0" min="0" oninput="convAcc('j3')"></div>
               <div><label>× 8h</label><input type="number" id="j3a480"  value="0" min="0" oninput="convAcc('j3')"></div>
               <div><label>× 24h</label><input type="number" id="j3a1440" value="0" min="0" oninput="convAcc('j3')"></div>
             </div>
@@ -1167,7 +1167,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
               <div><label>× 10 min</label><input type="number" id="j5a10"  value="0" min="0" oninput="convAcc('j5')"></div>
               <div><label>× 30 min</label><input type="number" id="j5a30"  value="0" min="0" oninput="convAcc('j5')"></div>
               <div><label>× 1h</label><input type="number" id="j5a60"   value="0" min="0" oninput="convAcc('j5')"></div>
-              <div><label>× 3h</label><input type="number" id="j5a180"  value="0" min="0" oninput="convAcc('j5')"></div>
+              <div><label>× 4h</label><input type="number" id="j5a240"  value="0" min="0" oninput="convAcc('j5')"></div>
               <div><label>× 8h</label><input type="number" id="j5a480"  value="0" min="0" oninput="convAcc('j5')"></div>
               <div><label>× 24h</label><input type="number" id="j5a1440" value="0" min="0" oninput="convAcc('j5')"></div>
             </div>
@@ -2265,7 +2265,7 @@ let DATA = {
   beast:    [{tier:1,food:0,wood:0,stone:0,iron:0,time:131},{tier:2,food:0,wood:0,stone:0,iron:0,time:131},{tier:3,food:0,wood:0,stone:0,iron:0,time:131},{tier:4,food:0,wood:0,stone:0,iron:0,time:131},{tier:5,food:0,wood:0,stone:0,iron:0,time:130},{tier:6,food:0,wood:0,stone:0,iron:0,time:131},{tier:7,food:0,wood:0,stone:0,iron:0,time:131}],
 };
 
-const SPEEDUPS = [{label:'1 min',sec:60},{label:'3 min',sec:180},{label:'10 min',sec:600},{label:'30 min',sec:1800},{label:'1h',sec:3600},{label:'3h',sec:10800},{label:'8h',sec:28800},{label:'24h',sec:86400}];
+const SPEEDUPS = [{label:'1 min',sec:60},{label:'5 min',sec:300},{label:'10 min',sec:600},{label:'30 min',sec:1800},{label:'1h',sec:3600},{label:'4h',sec:14400},{label:'8h',sec:28800},{label:'24h',sec:86400}];
 let selTier = 1;
 
 /* GEMME PACKS: stamina -> gemmes */
@@ -2396,11 +2396,11 @@ function showSaveMsg(id){
 /* ── CONVERTISSEUR D'ACCÉLÉRATEURS ── */
 const ACC_PACKS = [
   {id:'1',    min:1},
-  {id:'3',    min:3},
+  {id:'5',    min:5},
   {id:'10',   min:10},
   {id:'30',   min:30},
   {id:'60',   min:60},
-  {id:'180',  min:180},
+  {id:'240',  min:240},
   {id:'480',  min:480},
   {id:'1440', min:1440},
 ];
@@ -2442,11 +2442,11 @@ function calcCon2(){
   // Build ref table
   const accTypes = [
     {label:'1 min',   min:1},
-    {label:'3 min',   min:3},
+    {label:'5 min',   min:5},
     {label:'10 min',  min:10},
     {label:'30 min',  min:30},
     {label:'1h',      min:60},
-    {label:'3h',      min:180},
+    {label:'4h',      min:240},
     {label:'8h',      min:480},
     {label:'24h',     min:1440},
   ];
@@ -2476,7 +2476,7 @@ function calcCon2(){
   const bldMissing    = Math.ceil((ptsMissing / (bldPts * mult)) * 10);
 
   // Breakdown of acc minutes into packs
-  const accPacks = [{label:'24h',min:1440},{label:'8h',min:480},{label:'3h',min:180},{label:'1h',min:60},{label:'30min',min:30},{label:'10min',min:10},{label:'3min',min:3},{label:'1min',min:1}];
+  const accPacks = [{label:'24h',min:1440},{label:'8h',min:480},{label:'4h',min:240},{label:'1h',min:60},{label:'30min',min:30},{label:'10min',min:10},{label:'5min',min:5},{label:'1min',min:1}];
   let remMin = accMissing;
   const packBreak = accPacks.map((p,i,arr)=>{
     const isLast = i===arr.length-1;
@@ -2579,7 +2579,7 @@ function calcDay3(){
   const advMiss  = Math.ceil(missing / (advPts * mult));
 
   // Pack breakdown for missing acc minutes
-  const accPacks = [{label:'24h',min:1440},{label:'8h',min:480},{label:'3h',min:180},{label:'1h',min:60},{label:'30min',min:30},{label:'10min',min:10},{label:'3min',min:3},{label:'1min',min:1}];
+  const accPacks = [{label:'24h',min:1440},{label:'8h',min:480},{label:'4h',min:240},{label:'1h',min:60},{label:'30min',min:30},{label:'10min',min:10},{label:'5min',min:5},{label:'1min',min:1}];
   let remMin = accMiss;
   const packBreak = accPacks.map((p,i,arr)=>{
     const isLast = i===arr.length-1;
@@ -3923,12 +3923,21 @@ function switchPage(page, btn){
 
   if (page === 'admin' && !isAdmin) return;
 
-  if (page === 'page1' && !hasPremiumAccess()) {
-    alert('Le calculateur est réservé aux membres Premium.');
-    if (typeof window.openSubscriptionModal === 'function') {
-      window.openSubscriptionModal();
+  // Vérifier que l'utilisateur existe vraiment en base
+  if (page === 'page1') {
+    const users = getUsersStore();
+    if (!users[currentUser]) {
+      alert('Ton compte n\'existe pas. Connecte-toi ou crée un compte.');
+      showLoginPage();
+      return;
     }
-    return;
+    if (!hasPremiumAccess()) {
+      alert('Le calculateur est réservé aux membres Premium.');
+      if (typeof window.openSubscriptionModal === 'function') {
+        window.openSubscriptionModal();
+      }
+      return;
+    }
   }
 
   document.querySelectorAll('.page-content').forEach(p=>p.classList.remove('active'));
