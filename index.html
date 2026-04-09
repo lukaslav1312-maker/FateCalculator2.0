@@ -3973,6 +3973,13 @@ function buildTierGrid(){
 function setQty(n){ document.getElementById('quantity').value=n; }
 
 function calculate(){
+  if (!hasPremiumAccess()) {
+    alert('Le calculateur est réservé aux membres Premium.');
+    if (typeof window.openSubscriptionModal === 'function') {
+      window.openSubscriptionModal();
+    }
+    return;
+  }
   const type=document.getElementById('troopType').value;
   const qty=parseInt(document.getElementById('quantity').value)||1;
   const rm=1-(parseFloat(document.getElementById('resBonus').value)||0)/100;
