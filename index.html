@@ -681,9 +681,9 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
   </div>
   <p class="subtitle">Outils de Jeu</p>
   <div id="topLangBar" class="top-lang-bar">
-    <button class="lang-btn active" id="lang-fr" onclick="switchLang('fr')">🇫🇷 FR</button>
-    <button class="lang-btn" id="lang-en" onclick="switchLang('en')">🇺🇸 EN</button>
-    <button class="lang-btn" id="lang-ru" onclick="switchLang('ru')">🇷🇺 RU</button>
+    <button class="lang-btn active" id="lang-fr" onclick="switchLang('fr', true)">🇫🇷 FR</button>
+    <button class="lang-btn" id="lang-en" onclick="switchLang('en', true)">🇺🇸 EN</button>
+    <button class="lang-btn" id="lang-ru" onclick="switchLang('ru', true)">🇷🇺 RUS</button>
   </div>
   <!-- Navigation Páginas -->
   <div id="navButtons" style="display:flex;gap:12px;justify-content:center;margin-top:20px;padding:0 20px;">
@@ -1491,7 +1491,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
 <div style="max-width:1200px;margin:0 auto;padding:20px 20px 60px;">
 
   <div class="section-title"><h2>💎 Coût en Gemmes — Bâtiments</h2></div>
-  <p style="color:var(--dim);font-size:.85rem;margin:0 0 28px;max-width:700px;line-height:1.6;">Sélectionne ton niveau actuel puis renseigne tes items déjà en stock. Le calcul déduit automatiquement tes items pour afficher les gemmes réellement restantes jusqu'au niveau&nbsp;30.</p>
+  <p style="color:var(--dim);font-size:.85rem;margin:0 0 28px;max-width:700px;line-height:1.6;">Sélectionne ton niveau actuel puis renseigne tes items déjà en stock. Le calcul déduit automatiquement tes items pour afficher les gemmes réellement restantes jusqu'au niveau 30.</p>
 
   <!-- 3 building cards -->
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:24px;margin-bottom:36px;">
@@ -1834,7 +1834,22 @@ const TRANSLATIONS = {
     'Synergie:': 'Synergie:',
     'Inconnu': 'Inconnu',
     'Likes': 'Likes',
-    'Dislikes': 'Dislikes'
+    'Dislikes': 'Dislikes',
+    'Gems Bâtiments': 'Gems Bâtiments',
+    'Coût en Gemmes — Bâtiments': 'Coût en Gemmes — Bâtiments',
+    'Sélectionne ton niveau actuel puis renseigne tes items déjà en stock. Le calcul déduit automatiquement tes items pour afficher les gemmes réellement restantes jusqu\'au niveau 30.': 'Sélectionne ton niveau actuel puis renseigne tes items déjà en stock. Le calcul déduit automatiquement tes items pour afficher les gemmes réellement restantes jusqu\'au niveau 30.',
+    'Niveau actuel :': 'Niveau actuel :',
+    'Items en stock :': 'Items en stock :',
+    'Gemmes restantes → Lvl 30': 'Gemmes restantes → Lvl 30',
+    'Preuves restantes': 'Preuves restantes',
+    'Outils restants': 'Outils restants',
+    'Badges restants': 'Badges restants',
+    'Économie gemmes via items:': 'Économie gemmes via items:',
+    'Résumé Total — 3 Bâtiments combinés': 'Résumé Total — 3 Bâtiments combinés',
+    'Coût cumulé restant après déduction de tes items déjà en stock.': 'Coût cumulé restant après déduction de tes items déjà en stock.',
+    'Lvl actuel': 'Lvl actuel',
+    'Items restants': 'Items restants',
+    'Gemmes restantes': 'Gemmes restantes'
   },
   en: {
     'FATE WAR': 'FATE WAR',
@@ -2185,7 +2200,22 @@ const TRANSLATIONS = {
     'Synergie:': 'Synergy:',
     'Inconnu': 'Unknown',
     'Likes': 'Likes',
-    'Dislikes': 'Dislikes'
+    'Dislikes': 'Dislikes',
+    'Gems Bâtiments': 'Building Gems',
+    'Coût en Gemmes — Bâtiments': 'Building Gem Costs',
+    'Sélectionne ton niveau actuel puis renseigne tes items déjà en stock. Le calcul déduit automatiquement tes items pour afficher les gemmes réellement restantes jusqu\'au niveau 30.': 'Choose your current level and enter the items you already own. The calculator automatically deducts your items to show the gems truly remaining up to level 30.',
+    'Niveau actuel :': 'Current level:',
+    'Items en stock :': 'Owned items:',
+    'Gemmes restantes → Lvl 30': 'Remaining gems -> Lvl 30',
+    'Preuves restantes': 'Remaining proofs',
+    'Outils restants': 'Remaining toolboxes',
+    'Badges restants': 'Remaining badges',
+    'Économie gemmes via items:': 'Gem savings from items:',
+    'Résumé Total — 3 Bâtiments combinés': 'Total Summary - 3 Buildings Combined',
+    'Coût cumulé restant après déduction de tes items déjà en stock.': 'Total remaining cost after deducting the items you already own.',
+    'Lvl actuel': 'Current lvl',
+    'Items restants': 'Remaining items',
+    'Gemmes restantes': 'Remaining gems'
   },
   ru: {
     'FATE WAR': 'FATE WAR',
@@ -2534,11 +2564,26 @@ const TRANSLATIONS = {
     'Synergie:': 'Синергия:',
     'Inconnu': 'Неизвестно',
     'Likes': 'Лайки',
-    'Dislikes': 'Дизлайки'
+    'Dislikes': 'Дизлайки',
+    'Gems Bâtiments': 'Гемы зданий',
+    'Coût en Gemmes — Bâtiments': 'Стоимость зданий в гемах',
+    'Sélectionne ton niveau actuel puis renseigne tes items déjà en stock. Le calcul déduit automatiquement tes items pour afficher les gemmes réellement restantes jusqu\'au niveau 30.': 'Выберите текущий уровень и укажите уже имеющиеся предметы. Калькулятор автоматически вычитает их и показывает реально оставшиеся гемы до 30 уровня.',
+    'Niveau actuel :': 'Текущий уровень:',
+    'Items en stock :': 'Предметы в наличии:',
+    'Gemmes restantes → Lvl 30': 'Оставшиеся гемы -> ур. 30',
+    'Preuves restantes': 'Осталось доказательств',
+    'Outils restants': 'Осталось инструментов',
+    'Badges restants': 'Осталось значков',
+    'Économie gemmes via items:': 'Экономия гемов за счет предметов:',
+    'Résumé Total — 3 Bâtiments combinés': 'Итог - 3 здания вместе',
+    'Coût cumulé restant après déduction de tes items déjà en stock.': 'Суммарная оставшаяся стоимость после вычета уже имеющихся предметов.',
+    'Lvl actuel': 'Тек. ур.',
+    'Items restants': 'Осталось предметов',
+    'Gemmes restantes': 'Осталось гемов'
   }
 };
 
-function switchLang(lang) {
+function switchLang(lang, shouldReload = false) {
   if (!TRANSLATIONS[lang]) lang = 'fr';
   currentLang = lang;
   localStorage.setItem('fw_lang', lang);
@@ -2548,6 +2593,9 @@ function switchLang(lang) {
   document.documentElement.setAttribute('lang', lang);
   ensureI18nObserver();
   updatePageTranslations();
+  if (shouldReload) {
+    window.location.reload();
+  }
 }
 
 function t(key) {
