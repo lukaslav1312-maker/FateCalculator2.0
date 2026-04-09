@@ -3235,7 +3235,8 @@ function renderAdminTable() {
           : '<span style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:2px;color:var(--dim);font-size:.68rem;padding:2px 7px;">Gratuit</span>');
 
     const actionGive = !hasPrem
-      ? `<button onclick="adminGrantPremium('${k}')" title="Donner Premium à vie" style="padding:4px 9px;background:rgba(64,192,192,.12);border:1px solid rgba(64,192,192,.35);border-radius:2px;color:#40c0c0;font-size:.7rem;cursor:pointer;">✦ Premium</button>`
+      ? `<button onclick="adminGrantPremium('${k}')" title="Donner Premium à vie" style="padding:4px 9px;background:rgba(64,192,192,.12);border:1px solid rgba(64,192,192,.35);border-radius:2px;color:#40c0c0;font-size:.7rem;cursor:pointer;">✦ À vie</button>
+        <button onclick="adminGrantPremiumTimed('${k}')" title="Donner Premium pour une durée définie" style="padding:4px 9px;background:rgba(200,148,42,.12);border:1px solid rgba(200,148,42,.35);border-radius:2px;color:var(--gold);font-size:.7rem;cursor:pointer;">⏱ Durée</button>`
       : `<button onclick="adminRevokePremium('${k}')" title="Révoquer le Premium" style="padding:4px 9px;background:rgba(160,48,48,.12);border:1px solid rgba(160,48,48,.35);border-radius:2px;color:#e08080;font-size:.7rem;cursor:pointer;">✕ Révoquer</button>`;
 
     const actionDel = `<button onclick="adminDeleteUser('${k}')" title="Supprimer ce compte" style="padding:4px 9px;background:rgba(160,48,48,.08);border:1px solid rgba(160,48,48,.25);border-radius:2px;color:#c06060;font-size:.7rem;cursor:pointer;">🗑</button>`;
@@ -3518,6 +3519,47 @@ window.adminGrantPremium = function(username) {
   };
   saveUsersStore(users);
   renderAdminPanel();
+};
+
+window.adminGrantPremiumTimed = function(username) {
+  const users = getUsersStore();
+  if (!users[username]) return;
+
+  /* Demander la durée */
+  const input = prompt(
+    `Durée du Premium pour "${username}" :\n` +
+    '  Ex: 7j  → 7 jours\n' +
+    '       30j → 30 jours\n' +
+    '       3m  → 3 mois\n' +
+    '       1a  → 1 an\n\n' +
+    'Entrez la durée :'
+  );
+  if (!input) return;
+
+  const trimmed = input.trim().toLowerCase();
+  let ms = 0;
+  const num = parseFloat(trimmed);
+  if (isNaN(num) || num <= 0) { alert('Durée invalide.'); return; }
+  if (trimmed.endsWith('a'))       ms = num * 365 * 24 * 60 * 60 * 1000;
+  else if (trimmed.endsWith('m')) ms = num * 30  * 24 * 60 * 60 * 1000;
+  else if (trimmed.endsWith('j')) ms = num * 24  * 60 * 60 * 1000;
+  else { alert('Format invalide. Utilisez j (jours), m (mois) ou a (an).\nEx: 7j, 3m, 1a'); return; }
+
+  const renewsAt = Date.now() + ms;
+  const expiryDate = new Date(renewsAt).toLocaleDateString('fr-FR');
+  if (!confirm(`Donner Premium à "${username}" jusqu'au ${expiryDate} ?`)) return;
+
+  users[username].premium = {
+    active: true,
+    lifetime: false,
+    renewsAt,
+    cancelAt: null,
+    cancelRequestedAt: null,
+    data: { plan: 'timed', paymentMethod: 'admin', duration: trimmed, expiresAt: expiryDate, date: new Date().toISOString() }
+  };
+  saveUsersStore(users);
+  renderAdminPanel();
+  alert(`✅ Premium activé pour "${username}" jusqu'au ${expiryDate}.`);
 };
 
 window.adminRevokePremium = function(username) {
