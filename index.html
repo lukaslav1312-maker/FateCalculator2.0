@@ -6200,11 +6200,9 @@ checkAuth();
       </div>
 
       <p class="sub-pay-title">Moyen de paiement</p>
-      <div class="sub-pay-methods" id="sub-pay-methods">
-        <button type="button" class="sub-pay-method active" data-pay="card">💳 Carte bancaire</button>
-        <button type="button" class="sub-pay-method" data-pay="paypal">🅿️ PayPal</button>
-        <button type="button" class="sub-pay-method" data-pay="apple">🍎 Apple Pay</button>
-        <button type="button" class="sub-pay-method" data-pay="google">🟢 Google Pay</button>
+      <div style="background:rgba(255,255,255,.04);border:1px solid #2a2e45;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.3rem;">🔒</span>
+        <span style="font-size:12px;color:#aaa;line-height:1.5;">Paiement sécurisé via <strong style="color:#fff;">Stripe</strong> — carte bancaire, Apple Pay, Google Pay et PayPal acceptés selon votre région.</span>
       </div>
       <p id="pay-msg"></p>
 
@@ -6245,11 +6243,16 @@ checkAuth();
   /* ── STRIPE ─────────────────────────────────────────────────────────
    * 1. Créez un compte sur https://dashboard.stripe.com
    * 2. Dans Products → Payment Links, créez un lien par offre
-   * 3. Remplacez les valeurs ci-dessous par vos propres clés/liens
-   * 4. Dans chaque Payment Link, configurez :
-   *    Success URL : {votre-site}?stripe_return=success
-   * 5. Pour l'annulation, configurez votre Customer Portal Stripe,
-   *    puis collez son URL ci-dessous.
+   * 3. Remplacez les valeurs ci-dessous par vos propres liens
+   * 4. Dans chaque Payment Link → Paramètres → URL de confirmation :
+   *      {votre-site}?stripe_return=success&session_id={CHECKOUT_SESSION_ID}
+   *    → Cela permet la vérification serveur via l'Edge Function.
+   * 5. Pour l'annulation abonnement, configurez le Customer Portal Stripe
+   *    et collez son URL dans STRIPE_CANCEL_URL ci-dessous.
+   * 6. Déployez les Edge Functions Supabase :
+   *      supabase functions deploy verify-stripe-session
+   *      supabase functions deploy stripe-webhook
+   *    Et ajoutez les secrets : STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
    * ─────────────────────────────────────────────────────────────────── */
   var STRIPE_LINKS = {
     monthly:  'https://buy.stripe.com/5kQ3cwcZy1YQ1HN23A3F603',
@@ -6312,27 +6315,93 @@ checkAuth();
   (function checkStripeReturn() {
     var params = new URLSearchParams(window.location.search);
     if (params.get('stripe_return') !== 'success') return;
+
+    var sessionId = params.get('session_id') || '';
     var pending = null;
     try { pending = JSON.parse(sessionStorage.getItem('fw_pending_premium') || 'null'); } catch (e) {}
     if (!pending || !pending.user) return;
-    var users = getUsersStore();
-    if (!users[pending.user]) return;
-    users[pending.user].premium = {
-      active: true,
-      lifetime: pending.plan === 'lifetime',
-      renewsAt: pending.plan === 'lifetime' ? null : (Date.now() + getPlanDurationMs(pending.plan)),
-      cancelAt: null,
-      cancelRequestedAt: null,
-      data: { email: pending.email, plan: pending.plan, paymentMethod: 'stripe', date: new Date().toISOString() }
-    };
-    saveUsersStore(users);
+
+    /* Nettoyer l'URL et la session immédiatement */
     sessionStorage.removeItem('fw_pending_premium');
     if (window.history && window.history.replaceState) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-    if (typeof updatePremiumBadge === 'function') updatePremiumBadge();
-    if (typeof refreshSubscriptionTrigger === 'function') refreshSubscriptionTrigger();
-    setTimeout(function () { alert('\uD83C\uDF89 Paiement confirmé ! Votre accès Premium est maintenant actif.'); }, 300);
+
+    function activatePremiumLocally(plan, isLifetime, renewsAt, email) {
+      var users = getUsersStore();
+      if (!users[pending.user]) return;
+      users[pending.user].premium = {
+        active:            true,
+        lifetime:          isLifetime,
+        renewsAt:          renewsAt,
+        cancelAt:          null,
+        cancelRequestedAt: null,
+        stripeSessionId:   sessionId || null,
+        data: {
+          email:         email || pending.email,
+          plan:          plan  || pending.plan,
+          paymentMethod: 'stripe',
+          date:          new Date().toISOString()
+        }
+      };
+      saveUsersStore(users);
+      if (typeof updatePremiumBadge === 'function') updatePremiumBadge();
+      if (typeof refreshSubscriptionTrigger === 'function') refreshSubscriptionTrigger();
+      setTimeout(function () { alert('\uD83C\uDF89 Paiement confirmé ! Votre accès Premium est maintenant actif.'); }, 300);
+    }
+
+    /* ── Vérification serveur via Supabase Edge Function ───────────── */
+    if (sessionId && isSupabaseConfigured()) {
+      /* Overlay de chargement */
+      var overlay = document.createElement('div');
+      overlay.id = 'stripeVerifyOverlay';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;';
+      overlay.innerHTML =
+        '<style>@keyframes fwSpin{to{transform:rotate(360deg)}}</style>' +
+        '<div style="font-size:2.4rem;animation:fwSpin 1.1s linear infinite;display:inline-block;">⚙️</div>' +
+        '<div style="font-family:\'Cinzel\',serif;color:var(--gold,#c8942a);font-size:1rem;letter-spacing:.12em;text-align:center;">Vérification du paiement…</div>';
+      document.body.appendChild(overlay);
+
+      fetch(SUPABASE_URL + '/functions/v1/verify-stripe-session', {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'apikey':        SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({ session_id: sessionId, username: pending.user })
+      })
+      .then(function (res) { return res.json(); })
+      .then(function (result) {
+        var ov = document.getElementById('stripeVerifyOverlay');
+        if (ov) ov.remove();
+        if (result.ok) {
+          activatePremiumLocally(result.plan, !!result.isLifetime, result.renewsAt || null, result.email || null);
+        } else {
+          alert('\u274C Vérification du paiement échouée : ' + (result.error || 'Erreur inconnue') + '\nSi vous avez bien payé, contactez le support.');
+        }
+      })
+      .catch(function (err) {
+        var ov = document.getElementById('stripeVerifyOverlay');
+        if (ov) ov.remove();
+        console.warn('Stripe edge-function unavailable, using local fallback:', err);
+        /* Fallback : activation locale sans vérification serveur */
+        activatePremiumLocally(
+          pending.plan,
+          pending.plan === 'lifetime',
+          pending.plan === 'lifetime' ? null : (Date.now() + getPlanDurationMs(pending.plan)),
+          pending.email
+        );
+      });
+    } else {
+      /* Pas de session_id (ancien lien Stripe ou edge function indisponible) → fallback */
+      activatePremiumLocally(
+        pending.plan,
+        pending.plan === 'lifetime',
+        pending.plan === 'lifetime' ? null : (Date.now() + getPlanDurationMs(pending.plan)),
+        pending.email
+      );
+    }
   })();
 
   /* ------------------------------------------------------------------ */
@@ -6344,8 +6413,6 @@ checkAuth();
   var promoInput = document.getElementById('sub-promo');
   var promoApply = document.getElementById('sub-promo-apply-btn');
   var promoMsg   = document.getElementById('promo-msg');
-  var payMsg     = document.getElementById('pay-msg');
-  var payBtns    = document.querySelectorAll('.sub-pay-method');
   var submitBtn  = document.getElementById('sub-submit-btn');
   var formArea   = document.getElementById('sub-form-area');
   var doneMsg    = document.getElementById('sub-done-msg');
@@ -6353,17 +6420,8 @@ checkAuth();
   var doneSub    = document.getElementById('sub-done-sub');
 
   var selectedPlan = 'annual';
-  var selectedPay  = 'card';
   var promoValid   = false;
   var promoFree    = false;
-
-  payBtns.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      selectedPay = btn.dataset.pay;
-      payBtns.forEach(function (b) { b.classList.toggle('active', b === btn); });
-      payMsg.textContent = '';
-    });
-  });
 
   function userHasPremium() {
     if (!currentUser) return false;
@@ -6508,9 +6566,15 @@ checkAuth();
       email: email
     }));
 
-    /* Redirection vers le Payment Link Stripe avec email pré-rempli */
+    /*
+     * Redirection vers le Payment Link Stripe.
+     * IMPORTANT — Dans le dashboard Stripe pour chaque Payment Link :
+     *   Paramètres → URL de confirmation → configurer :
+     *   {VOTRE_SITE}?stripe_return=success&session_id={CHECKOUT_SESSION_ID}
+     * Cela active la vérification serveur du paiement lors du retour.
+     */
     var url = link
-      + '?prefilled_email=' + encodeURIComponent(email)
+      + '?prefilled_email='     + encodeURIComponent(email)
       + '&client_reference_id=' + encodeURIComponent(currentUser);
     window.location.href = url;
   });
