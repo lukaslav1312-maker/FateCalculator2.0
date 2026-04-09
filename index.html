@@ -6,6 +6,7 @@
 <title>Fate War — Outils</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;700&family=Crimson+Pro:wght@300;400;600&display=swap" rel="stylesheet">
 <script src="https://js.stripe.com/v3/"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --bg:       #0a0b0f;
@@ -502,8 +503,8 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
         </div>
 
         <div style="margin-bottom:14px;">
-          <label style="display:block;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.15em;color:var(--dim);text-transform:uppercase;margin-bottom:6px;">Nom d'utilisateur</label>
-          <input type="text" id="loginUsername" placeholder="Ton pseudo" autocomplete="username"
+          <label style="display:block;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.15em;color:var(--dim);text-transform:uppercase;margin-bottom:6px;">Pseudo ou email</label>
+          <input type="text" id="loginUsername" placeholder="Ton pseudo ou ton email" autocomplete="username"
             onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()"
             style="width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:3px;color:var(--white);font-family:'Crimson Pro',serif;font-size:1rem;padding:10px 12px;outline:none;box-sizing:border-box;transition:border-color .2s;">
         </div>
@@ -536,6 +537,11 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
           <input type="text" id="registerUsername" placeholder="3 à 20 caractères" autocomplete="username" oninput="checkUsernameAvail()"
             style="width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:3px;color:var(--white);font-family:'Crimson Pro',serif;font-size:1rem;padding:10px 12px;outline:none;box-sizing:border-box;">
           <div id="usernameHint" style="font-size:.75rem;margin-top:4px;color:var(--dim);"></div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.15em;color:var(--dim);text-transform:uppercase;margin-bottom:6px;">Email</label>
+          <input type="email" id="registerEmail" placeholder="ton@email.com" autocomplete="email"
+            style="width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:3px;color:var(--white);font-family:'Crimson Pro',serif;font-size:1rem;padding:10px 12px;outline:none;box-sizing:border-box;">
         </div>
         <div style="margin-bottom:14px;">
           <label style="display:block;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.15em;color:var(--dim);text-transform:uppercase;margin-bottom:6px;">Mot de passe</label>
@@ -1376,6 +1382,252 @@ let isAdmin = false;
 // ── Identifiants admin (hardcodés – ne pas stocker dans fw_users) ──
 const ADMIN_USERNAME = 'ADMIN_FW';
 const ADMIN_PASSWORD_HASH_KEY = 'fw_admin_password_hash';
+const SUPABASE_URL = localStorage.getItem('fw_supabase_url') || 'https://vyrrhkkrtzgvhbjgeiwo.supabase.co';
+const SUPABASE_ANON_KEY = localStorage.getItem('fw_supabase_anon_key') || 'sb_publishable_hz-mFNhVfg5F7im0xOfcAg_Zf46ihr_';
+const SUPABASE_USERS_TABLE = 'fw_users';
+const SUPABASE_PAIRS_TABLE = 'fw_shared_pairs';
+
+let sharedPairs = [];
+let supabaseClient = null;
+let cloudRefreshHandle = null;
+
+function isSupabaseConfigured() {
+  return SUPABASE_URL && SUPABASE_ANON_KEY &&
+    !SUPABASE_URL.includes('REMPLACE_') &&
+    !SUPABASE_ANON_KEY.includes('REMPLACE_');
+}
+
+function getSupabaseClient() {
+  if (!isSupabaseConfigured()) return null;
+  if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+  if (!supabaseClient) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+  return supabaseClient;
+}
+
+window.configureSupabase = function(url, anonKey) {
+  if (!url || !anonKey) return false;
+  localStorage.setItem('fw_supabase_url', url.trim());
+  localStorage.setItem('fw_supabase_anon_key', anonKey.trim());
+  alert('Configuration Supabase enregistree. Recharge la page.');
+  return true;
+};
+
+function normalizeCloudUserRow(row) {
+  const data = row && row.data && typeof row.data === 'object' ? row.data : {};
+  return {
+    ...data,
+    email: row.email || data.email || '',
+    authUserId: row.auth_user_id || data.authUserId || '',
+    password: row.password_hash || data.password || '',
+    created: row.created_at_ms || data.created || Date.now(),
+    lastLogin: row.last_login_ms || data.lastLogin || Date.now(),
+    premium: row.premium ?? data.premium
+  };
+}
+
+function serializeCloudUserRow(username, user) {
+  return {
+    username,
+    email: user.email || null,
+    auth_user_id: user.authUserId || null,
+    password_hash: user.password || '',
+    created_at_ms: user.created || Date.now(),
+    last_login_ms: user.lastLogin || Date.now(),
+    premium: user.premium || null,
+    data: user
+  };
+}
+
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function isEmailLike(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeEmail(value));
+}
+
+function getUserEntryByIdentifier(identifier) {
+  const normalized = normalizeEmail(identifier);
+  const users = getUsersStore();
+  if (users[identifier]) return { username: identifier, user: users[identifier] };
+  const match = Object.entries(users).find(([username, user]) =>
+    username === identifier || normalizeEmail(user.email) === normalized
+  );
+  return match ? { username: match[0], user: match[1] } : null;
+}
+
+function getUserEntryByAuthIdentity(authUserId, email) {
+  const normalizedEmail = normalizeEmail(email);
+  const users = getUsersStore();
+  const match = Object.entries(users).find(([, user]) =>
+    (authUserId && user.authUserId === authUserId) ||
+    (normalizedEmail && normalizeEmail(user.email) === normalizedEmail)
+  );
+  return match ? { username: match[0], user: match[1] } : null;
+}
+
+function normalizeSharedPair(pair) {
+  return {
+    ...pair,
+    id: String(pair.id || Date.now()),
+    authorKey: pair.authorKey || '',
+    user: pair.user || 'Anonyme',
+    hero1: pair.hero1 || '',
+    hero2: pair.hero2 || '',
+    troopType: pair.troopType || '',
+    context: pair.context || '',
+    description: pair.description || '',
+    imageData: pair.imageData || null,
+    timestamp: pair.timestamp || Date.now(),
+    likes: Number.isFinite(pair.likes) ? pair.likes : 0,
+    dislikes: Number.isFinite(pair.dislikes) ? pair.dislikes : 0,
+    reactions: pair.reactions && typeof pair.reactions === 'object' && !Array.isArray(pair.reactions) ? pair.reactions : {},
+    votes: Number.isFinite(pair.votes) ? pair.votes : 0,
+    votedBy: Array.isArray(pair.votedBy) ? pair.votedBy : []
+  };
+}
+
+function serializeCloudSharedPairRow(pair) {
+  const normalized = normalizeSharedPair(pair);
+  return {
+    id: normalized.id,
+    user_name: normalized.user,
+    author_key: normalized.authorKey || null,
+    hero1: normalized.hero1,
+    hero2: normalized.hero2,
+    troop_type: normalized.troopType || null,
+    context: normalized.context || null,
+    description: normalized.description || null,
+    image_data: normalized.imageData || null,
+    timestamp: normalized.timestamp,
+    likes: normalized.likes,
+    dislikes: normalized.dislikes,
+    reactions: normalized.reactions,
+    votes: normalized.votes,
+    voted_by: normalized.votedBy,
+    data: normalized
+  };
+}
+
+function normalizeCloudSharedPairRow(row) {
+  const data = row && row.data && typeof row.data === 'object' ? row.data : {};
+  return normalizeSharedPair({
+    ...data,
+    id: row.id || data.id,
+    user: row.user_name || data.user,
+    authorKey: row.author_key || data.authorKey,
+    hero1: row.hero1 || data.hero1,
+    hero2: row.hero2 || data.hero2,
+    troopType: row.troop_type || data.troopType,
+    context: row.context || data.context,
+    description: row.description || data.description,
+    imageData: row.image_data || data.imageData,
+    timestamp: row.timestamp || data.timestamp,
+    likes: row.likes ?? data.likes,
+    dislikes: row.dislikes ?? data.dislikes,
+    reactions: row.reactions || data.reactions,
+    votes: row.votes ?? data.votes,
+    votedBy: row.voted_by || data.votedBy
+  });
+}
+
+async function replaceUsersInCloud(users) {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const entries = Object.entries(users || {});
+  const payload = entries.map(([username, user]) => serializeCloudUserRow(username, user));
+  const { data: existingRows, error: existingError } = await client.from(SUPABASE_USERS_TABLE).select('username');
+  if (existingError) {
+    console.error('Erreur sync users cloud:', existingError.message);
+    return;
+  }
+  if (payload.length) {
+    const { error: upsertError } = await client.from(SUPABASE_USERS_TABLE).upsert(payload, { onConflict: 'username' });
+    if (upsertError) {
+      console.error('Erreur upsert users cloud:', upsertError.message);
+      return;
+    }
+  }
+  const existing = new Set((existingRows || []).map(row => row.username));
+  const current = new Set(entries.map(([username]) => username));
+  const toDelete = Array.from(existing).filter(username => !current.has(username));
+  if (toDelete.length) {
+    const { error: deleteError } = await client.from(SUPABASE_USERS_TABLE).delete().in('username', toDelete);
+    if (deleteError) console.error('Erreur delete users cloud:', deleteError.message);
+  }
+}
+
+async function syncUsersFromCloud() {
+  const client = getSupabaseClient();
+  if (!client) return getUsersStore();
+  const { data, error } = await client.from(SUPABASE_USERS_TABLE).select('*');
+  if (error) {
+    console.error('Erreur lecture users cloud:', error.message);
+    return getUsersStore();
+  }
+  const users = {};
+  (data || []).forEach(row => {
+    users[row.username] = normalizeCloudUserRow(row);
+  });
+  localStorage.setItem('fw_users', JSON.stringify(users));
+  return users;
+}
+
+async function replaceSharedPairsInCloud(pairs) {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const normalizedPairs = (pairs || []).map(normalizeSharedPair);
+  const payload = normalizedPairs.map(serializeCloudSharedPairRow);
+  const { data: existingRows, error: existingError } = await client.from(SUPABASE_PAIRS_TABLE).select('id');
+  if (existingError) {
+    console.error('Erreur sync pairs cloud:', existingError.message);
+    return;
+  }
+  if (payload.length) {
+    const { error: upsertError } = await client.from(SUPABASE_PAIRS_TABLE).upsert(payload, { onConflict: 'id' });
+    if (upsertError) {
+      console.error('Erreur upsert pairs cloud:', upsertError.message);
+      return;
+    }
+  }
+  const existing = new Set((existingRows || []).map(row => row.id));
+  const current = new Set(normalizedPairs.map(pair => pair.id));
+  const toDelete = Array.from(existing).filter(id => !current.has(id));
+  if (toDelete.length) {
+    const { error: deleteError } = await client.from(SUPABASE_PAIRS_TABLE).delete().in('id', toDelete);
+    if (deleteError) console.error('Erreur delete pairs cloud:', deleteError.message);
+  }
+}
+
+async function syncSharedPairsFromCloud() {
+  const client = getSupabaseClient();
+  if (!client) return sharedPairs;
+  const { data, error } = await client.from(SUPABASE_PAIRS_TABLE).select('*').order('timestamp', { ascending: false });
+  if (error) {
+    console.error('Erreur lecture pairs cloud:', error.message);
+    return sharedPairs;
+  }
+  sharedPairs = (data || []).map(normalizeCloudSharedPairRow);
+  localStorage.setItem('fw_shared_pairs', JSON.stringify(sharedPairs));
+  return sharedPairs;
+}
+
+function startCloudAutoRefresh() {
+  if (cloudRefreshHandle || !getSupabaseClient()) return;
+  cloudRefreshHandle = setInterval(async () => {
+    const activePage = document.querySelector('.page-content.active')?.id;
+    if (activePage === 'admin') {
+      await syncUsersFromCloud();
+      renderAdminTable();
+    }
+    if (activePage === 'pairs') {
+      await syncSharedPairsFromCloud();
+      renderSharedPairs();
+    }
+  }, 15000);
+}
 
 function getAdminPasswordHash() {
   return localStorage.getItem(ADMIN_PASSWORD_HASH_KEY) || '';
@@ -1409,6 +1661,7 @@ function getUsersStore() {
 
 function saveUsersStore(users) {
   localStorage.setItem('fw_users', JSON.stringify(users));
+  void replaceUsersInCloud(users);
 }
 
 function getPlanDurationMs(plan) {
@@ -1494,7 +1747,7 @@ function checkUsernameAvail() {
   if (!val) { hint.textContent = ''; return; }
   if (val.length < 3) { hint.textContent = '⚠ Trop court (3+ caractères)'; hint.style.color = '#e08080'; return; }
   if (val.length > 20) { hint.textContent = '⚠ Trop long (max 20)'; hint.style.color = '#e08080'; return; }
-  const users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+  const users = getUsersStore();
   if (users[val]) { hint.textContent = '✕ Pseudo déjà pris'; hint.style.color = '#e08080'; }
   else { hint.textContent = '✔ Disponible'; hint.style.color = 'var(--teal-lt)'; }
 }
@@ -1525,6 +1778,7 @@ function showMainApp() {
   if (typeof window.refreshSubscriptionTrigger === 'function') {
     window.refreshSubscriptionTrigger();
   }
+  startCloudAutoRefresh();
   init();
 }
 
@@ -1555,7 +1809,7 @@ function switchAuthTab(tab) {
 }
 
 function buildSavedAccounts() {
-  const users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+  const users = getUsersStore();
   const keys = Object.keys(users);
   const section = document.getElementById('savedAccountsSection');
   const list = document.getElementById('savedAccountsList');
@@ -1576,9 +1830,9 @@ function buildSavedAccounts() {
 
 function deleteSavedAccount(username) {
   if (!confirm(`Supprimer le compte "${username}" et toutes ses données ?\n\nCette action est irréversible.`)) return;
-  const users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+  const users = getUsersStore();
   delete users[username];
-  localStorage.setItem('fw_users', JSON.stringify(users));
+  saveUsersStore(users);
   // Remove all user data keys
   const toDelete = [];
   for (let i = 0; i < localStorage.length; i++) {
@@ -1603,12 +1857,13 @@ function showLoginPage() {
   buildSavedAccounts();
 }
 
-function login() {
+async function login() {
   const username = document.getElementById('loginUsername').value.trim();
   const password = document.getElementById('loginPassword').value;
   hideMsg('loginError');
   if (!username || !password) { showError('loginError', '⚠ Veuillez remplir tous les champs.'); return; }
-  const users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+  await syncUsersFromCloud();
+  const users = getUsersStore();
   // Vérification compte admin
   if (username === ADMIN_USERNAME) {
     if (!ensureAdminPasswordConfigured()) { showError('loginError', '⚠ Configure d abord un mot de passe admin.'); return; }
@@ -1620,39 +1875,89 @@ function login() {
     return;
   }
 
-  if (!users[username]) { showError('loginError', '✕ Utilisateur non trouvé. Créez un compte.'); return; }
-  if (users[username].password !== hashPassword(password)) { showError('loginError', '✕ Mot de passe incorrect.'); return; }
+  const userEntry = getUserEntryByIdentifier(username);
+  if (!userEntry) { showError('loginError', '✕ Utilisateur non trouvé. Créez un compte.'); return; }
+
+  const client = getSupabaseClient();
+  if (client) {
+    const loginEmail = normalizeEmail(isEmailLike(username) ? username : userEntry.user.email);
+    if (!loginEmail) { showError('loginError', '✕ Email introuvable pour ce compte.'); return; }
+    const { data, error } = await client.auth.signInWithPassword({ email: loginEmail, password });
+    if (error) { showError('loginError', `✕ ${error.message}`); return; }
+    await syncUsersFromCloud();
+    const authEntry = getUserEntryByAuthIdentity(data.user?.id, loginEmail) || userEntry;
+    authEntry.user.authUserId = data.user?.id || authEntry.user.authUserId || '';
+    authEntry.user.email = loginEmail;
+    authEntry.user.lastLogin = Date.now();
+    users[authEntry.username] = authEntry.user;
+    saveUsersStore(users);
+    currentUser = authEntry.username;
+  } else {
+    if (userEntry.user.password !== hashPassword(password)) { showError('loginError', '✕ Mot de passe incorrect.'); return; }
+    userEntry.user.lastLogin = Date.now();
+    users[userEntry.username] = userEntry.user;
+    saveUsersStore(users);
+    currentUser = userEntry.username;
+  }
+
   // Update last login
-  users[username].lastLogin = Date.now();
-  localStorage.setItem('fw_users', JSON.stringify(users));
-  currentUser = username;
   const remember = document.getElementById('rememberMe')?.checked;
   if (remember) localStorage.setItem('fw_current_user', currentUser);
   else sessionStorage.setItem('fw_current_user', currentUser);
   showMainApp();
 }
 
-function register() {
+async function register() {
   const username = document.getElementById('registerUsername').value.trim();
+  const email = normalizeEmail(document.getElementById('registerEmail').value.trim());
   const password = document.getElementById('registerPassword').value;
   const confirm  = document.getElementById('registerPasswordConfirm').value;
   hideMsg('registerError'); hideMsg('registerSuccess');
-  if (!username || !password) { showError('registerError', '⚠ Veuillez remplir tous les champs.'); return; }
+  if (!username || !email || !password) { showError('registerError', '⚠ Veuillez remplir tous les champs.'); return; }
   if (username.length < 3 || username.length > 20) { showError('registerError', '⚠ Pseudo : 3 à 20 caractères.'); return; }
+  if (!isEmailLike(email)) { showError('registerError', '⚠ Email invalide.'); return; }
   if (password.length < 4) { showError('registerError', '⚠ Mot de passe trop court (4+ caractères).'); return; }
   if (password !== confirm) { showError('registerError', '✕ Les mots de passe ne correspondent pas.'); return; }
-  const users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+  await syncUsersFromCloud();
+  const users = getUsersStore();
   if (users[username]) { showError('registerError', '✕ Ce pseudo est déjà utilisé.'); return; }
-  users[username] = { password: hashPassword(password), created: Date.now(), lastLogin: Date.now() };
-  localStorage.setItem('fw_users', JSON.stringify(users));
+  if (Object.values(users).some(user => normalizeEmail(user.email) === email)) { showError('registerError', '✕ Cet email est déjà utilisé.'); return; }
+
+  const client = getSupabaseClient();
+  let authUserId = '';
+  if (client) {
+    const { data, error } = await client.auth.signUp({
+      email,
+      password,
+      options: { data: { username } }
+    });
+    if (error) { showError('registerError', `✕ ${error.message}`); return; }
+    authUserId = data.user?.id || '';
+    if (!data.session) {
+      users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now() };
+      saveUsersStore(users);
+      document.getElementById('registerSuccess').textContent = 'Compte créé. Vérifie ton email puis connecte-toi.';
+      document.getElementById('registerSuccess').style.display = 'block';
+      document.getElementById('loginUsername').value = username;
+      switchAuthTab('login');
+      return;
+    }
+  }
+
+  users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now() };
+  saveUsersStore(users);
   currentUser = username;
   localStorage.setItem('fw_current_user', currentUser);
   showMainApp();
 }
 
-function logout() {
+async function logout() {
   currentUser = null;
   isAdmin = false;
+  const client = getSupabaseClient();
+  if (client) {
+    try { await client.auth.signOut(); } catch (e) { console.error(e); }
+  }
   localStorage.removeItem('fw_current_user');
   sessionStorage.removeItem('fw_current_user');
   sessionStorage.removeItem('fw_admin_session');
@@ -1662,23 +1967,41 @@ function logout() {
   showLoginPage();
 }
 
-function checkAuth() {
+async function checkAuth() {
+  await syncUsersFromCloud();
   if (sessionStorage.getItem('fw_admin_session') === '1') {
     isAdmin = true;
     currentUser = ADMIN_USERNAME;
     showMainApp();
     return;
   }
+  const client = getSupabaseClient();
+  if (client) {
+    const { data, error } = await client.auth.getSession();
+    if (!error && data && data.session && data.session.user) {
+      const authEntry = getUserEntryByAuthIdentity(data.session.user.id, data.session.user.email);
+      if (authEntry) {
+        currentUser = authEntry.username;
+        localStorage.setItem('fw_current_user', currentUser);
+        showMainApp();
+        return;
+      }
+    }
+    localStorage.removeItem('fw_current_user');
+    sessionStorage.removeItem('fw_current_user');
+    return;
+  }
   const saved = localStorage.getItem('fw_current_user') || sessionStorage.getItem('fw_current_user');
   if (saved) {
-    const users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+    const users = getUsersStore();
     if (users[saved]) { currentUser = saved; showMainApp(); return; }
   }
   showLoginPage();
 }
 
 /* ── ADMIN PANEL ── */
-function renderAdminPanel() {
+async function renderAdminPanel() {
+  await syncUsersFromCloud();
   const users = getUsersStore();
   const keys = Object.keys(users);
   const now = Date.now();
@@ -1834,7 +2157,7 @@ function openProfile() {
 
   // Info
   refreshUserPremiumStatus(currentUser);
-  const users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+  const users = getUsersStore();
   const u = users[currentUser] || {};
   const created = u.created ? new Date(u.created).toLocaleDateString('fr-FR') : '?';
   const lastLogin = u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('fr-FR') : '?';
@@ -1899,10 +2222,10 @@ function changePassword() {
   if (!oldPwd || !newPwd || !confirm) { showError('pwdError', '⚠ Remplissez tous les champs.'); return; }
   if (newPwd.length < 4) { showError('pwdError', '⚠ Nouveau mot de passe trop court (4+).'); return; }
   if (newPwd !== confirm) { showError('pwdError', '✕ Les mots de passe ne correspondent pas.'); return; }
-  const users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+  const users = getUsersStore();
   if (users[currentUser].password !== hashPassword(oldPwd)) { showError('pwdError', '✕ Mot de passe actuel incorrect.'); return; }
   users[currentUser].password = hashPassword(newPwd);
-  localStorage.setItem('fw_users', JSON.stringify(users));
+  saveUsersStore(users);
   document.getElementById('pwdSuccess').style.display = 'block';
   document.getElementById('pwdOld').value = '';
   document.getElementById('pwdNew').value = '';
@@ -1911,9 +2234,9 @@ function changePassword() {
 
 function deleteAccount() {
   if (!confirm(`Supprimer le compte "${currentUser}" et TOUTES ses données ?\n\nCette action est irréversible.`)) return;
-  const users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+  const users = getUsersStore();
   delete users[currentUser];
-  localStorage.setItem('fw_users', JSON.stringify(users));
+  saveUsersStore(users);
   // Remove all user data
   const keysToDelete = [];
   for (let i = 0; i < localStorage.length; i++) {
@@ -3586,10 +3909,10 @@ function renderHeroSkillsPage() {
   }
 }
 
-function init(){
+async function init(){
   buildTierGrid(); buildDataEditor(); loadData(); loadEvt(); loadGem(); loadCon2(); loadDay3(); loadDay4(); loadDay5(); buildGemRef(50,1); loadPairLikes(); renderSynergyPairs();
   loadHeroSkillsState(); renderHeroSkillsPage();
-  populateHeroSelects(); loadSharedPairs(); renderSharedPairs();
+  populateHeroSelects(); await loadSharedPairs(); renderSharedPairs();
 }
 
 function switchPage(page, btn){
@@ -3616,8 +3939,7 @@ function switchPage(page, btn){
   // Initialiser la page paires même sans compte (invités)
   if (page === 'pairs') {
     populateHeroSelects();
-    loadSharedPairs();
-    renderSharedPairs();
+    void loadSharedPairs().then(() => renderSharedPairs());
     loadPairLikes();
     renderSynergyPairs();
   }
@@ -3625,7 +3947,7 @@ function switchPage(page, btn){
     loadHeroSkillsState();
     renderHeroSkillsPage();
   }
-  if (page === 'admin') renderAdminPanel();
+  if (page === 'admin') void renderAdminPanel();
 }
 
 function buildTierGrid(){
@@ -4019,7 +4341,7 @@ function sharePair(){
 
   const voterKey = getVoterKey();
 
-  const createPost = (imageData = null) => {
+  const createPost = async (imageData = null) => {
     const newPair = {
       id: Date.now().toString(),
       authorKey: voterKey,
@@ -4035,7 +4357,7 @@ function sharePair(){
     };
 
     sharedPairs.unshift(newPair);
-    saveSharedPairs();
+    await saveSharedPairs();
     renderSharedPairs();
 
     document.getElementById('shareHero1').value = '';
@@ -4049,15 +4371,15 @@ function sharePair(){
 
   if (imageFile) {
     const reader = new FileReader();
-    reader.onload = (e) => createPost(e.target.result);
+    reader.onload = (e) => { void createPost(e.target.result); };
     reader.onerror = () => alert('Erreur lors de la lecture de l\'image.');
     reader.readAsDataURL(imageFile);
   } else {
-    createPost();
+    void createPost();
   }
 }
 
-function loadSharedPairs(){
+async function loadSharedPairs(){
   try {
     const saved = localStorage.getItem('fw_shared_pairs');
     sharedPairs = saved ? JSON.parse(saved) : [];
@@ -4082,11 +4404,13 @@ function loadSharedPairs(){
   } catch(e) {
     sharedPairs = [];
   }
+  await syncSharedPairsFromCloud();
 }
 
-function saveSharedPairs(){
+async function saveSharedPairs(){
   try {
     localStorage.setItem('fw_shared_pairs', JSON.stringify(sharedPairs));
+    await replaceSharedPairsInCloud(sharedPairs);
   } catch(e) {
     alert('Erreur lors de la sauvegarde.');
   }
@@ -4110,7 +4434,7 @@ function getSharedPairVote(pair, voterKey) {
   return null;
 }
 
-function voteSharedPair(pairId, newVote){
+async function voteSharedPair(pairId, newVote){
   const voterKey = getVoterKey();
   const pair = sharedPairs.find(p => p.id === pairId);
   if (!pair) return;
@@ -4138,14 +4462,14 @@ function voteSharedPair(pairId, newVote){
 
   pair.votes = pair.likes;
   pair.votedBy = Object.keys(pair.reactions).filter(voter => pair.reactions[voter] === 'like');
-  saveSharedPairs();
+  await saveSharedPairs();
   renderSharedPairs();
 }
 
-function deleteSharedPair(pairId){
+async function deleteSharedPair(pairId){
   if (!confirm('Supprimer cette composition ?')) return;
   sharedPairs = sharedPairs.filter(p => p.id !== pairId);
-  saveSharedPairs();
+  await saveSharedPairs();
   renderSharedPairs();
 }
 
@@ -4536,7 +4860,7 @@ checkAuth();
       alert('Lien de gestion Stripe non configuré.');
       return;
     }
-    var users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+    var users = getUsersStore();
     var u = users[currentUser] || {};
     if (!u.premium || !u.premium.active || u.premium.lifetime) {
       alert('Aucun abonnement récurrent à annuler sur ce compte.');
@@ -4552,7 +4876,7 @@ checkAuth();
 
   window.markStripeCancelAtPeriodEnd = function () {
     if (!currentUser) return;
-    var users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+    var users = getUsersStore();
     var u = users[currentUser] || {};
     if (!u.premium || !u.premium.active || u.premium.lifetime) {
       alert('Aucun abonnement récurrent à marquer comme annulé.');
@@ -4571,7 +4895,7 @@ checkAuth();
     u.premium.cancelAt = periodEnd;
     u.premium.cancelRequestedAt = Date.now();
     users[currentUser] = u;
-    localStorage.setItem('fw_users', JSON.stringify(users));
+    saveUsersStore(users);
 
     alert('Annulation enregistrée. L\'accès Premium sera coupé automatiquement le ' + new Date(periodEnd).toLocaleDateString('fr-FR') + '.');
     if (typeof openProfile === 'function') openProfile();
@@ -4584,7 +4908,7 @@ checkAuth();
     var pending = null;
     try { pending = JSON.parse(sessionStorage.getItem('fw_pending_premium') || 'null'); } catch (e) {}
     if (!pending || !pending.user) return;
-    var users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+    var users = getUsersStore();
     if (!users[pending.user]) return;
     users[pending.user].premium = {
       active: true,
@@ -4594,7 +4918,7 @@ checkAuth();
       cancelRequestedAt: null,
       data: { email: pending.email, plan: pending.plan, paymentMethod: 'stripe', date: new Date().toISOString() }
     };
-    localStorage.setItem('fw_users', JSON.stringify(users));
+    saveUsersStore(users);
     sessionStorage.removeItem('fw_pending_premium');
     if (window.history && window.history.replaceState) {
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -4639,7 +4963,7 @@ checkAuth();
     if (typeof refreshUserPremiumStatus === 'function') {
       return !!refreshUserPremiumStatus(currentUser);
     }
-    var users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+    var users = getUsersStore();
     return !!(users[currentUser] && users[currentUser].premium && users[currentUser].premium.active);
   }
 
@@ -4743,7 +5067,7 @@ checkAuth();
 
     /* ── CODE PROMO GRATUIT ─────────────────────────────────────────── */
     if (promoFree) {
-      var users = JSON.parse(localStorage.getItem('fw_users') || '{}');
+      var users = getUsersStore();
       if (!users[currentUser]) { alert('Compte introuvable. Veuillez vous reconnecter.'); showLoginPage(); return; }
       users[currentUser].premium = {
         active: true,
@@ -4753,7 +5077,7 @@ checkAuth();
         cancelRequestedAt: null,
         data: { email: email, plan: 'lifetime', paymentMethod: 'promo', promo: promoInput.value.trim().toUpperCase(), date: new Date().toISOString() }
       };
-      localStorage.setItem('fw_users', JSON.stringify(users));
+      saveUsersStore(users);
       formArea.style.display = 'none';
       doneMsg.style.display  = 'block';
       doneText.textContent = '\uD83C\uDF89 Accès à vie activé gratuitement !';
