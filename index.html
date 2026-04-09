@@ -30,7 +30,7 @@ body {
   min-height: 100vh;
   background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,148,42,.10) 0%, transparent 70%);
 }
-header { text-align: center; padding: 40px 20px 24px; }
+header { text-align: center; padding: 86px 20px 24px; }
 .page-btn { padding:10px 20px; background:rgba(0,0,0,.3); border:1px solid var(--border); border-radius:3px; color:var(--dim); font-family:'Cinzel',serif; font-size:.8rem; letter-spacing:.1em; cursor:pointer; transition:all .2s; text-transform:uppercase; }
 .page-btn:hover { border-color:var(--gold-dim); color:var(--gold); }
 .page-btn.active { border-color:var(--gold); background:rgba(200,148,42,.15); color:var(--gold-lt); }
@@ -121,6 +121,106 @@ td { padding:5px 8px; border-bottom:1px solid rgba(42,46,69,.4); vertical-align:
 tr:last-child td { border-bottom:none; }
 .tier-badge { display:inline-block; background:rgba(200,148,42,.12); border:1px solid var(--gold-dim); color:var(--gold); font-family:'Cinzel',serif; font-size:.65rem; padding:2px 7px; border-radius:2px; }
 td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
+@media(max-width:900px){
+  table { font-size:.8rem; }
+  th { font-size:.55rem; padding:5px 4px; }
+  td { padding:4px; font-size:.75rem; }
+  td input { padding:2px 4px; font-size:.75rem; }
+  .tier-badge { font-size:.55rem; padding:1px 5px; }
+}
+@media(max-width:600px){
+  table { font-size:.7rem; }
+  th { font-size:.5rem; padding:3px 2px; }
+  td { padding:3px 2px; font-size:.65rem; }
+  td input { padding:1px 3px; font-size:.65rem; }
+  .tier-badge { font-size:.5rem; padding:1px 3px; }
+  .tab-pane { padding:10px; }
+  .info-note { font-size:.75rem; padding:8px 10px; }
+}
+.lang-btn { padding:6px 10px; background:rgba(200,148,42,.1); border:1px solid var(--gold-dim); border-radius:3px; color:var(--gold); font-family:'Cinzel',serif; font-size:.65rem; letter-spacing:.08em; cursor:pointer; transition:all .15s; margin:0 3px; }
+.lang-btn.active { background:rgba(200,148,42,.25); border-color:var(--gold); }
+.top-lang-bar {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  z-index: 10001;
+  background: rgba(10,11,15,.88);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+@media(max-width:600px){
+  header { padding-top: 94px; }
+  .top-lang-bar { top: 8px; }
+}
+
+/* ── CREATOR FOOTER ── */
+#creatorFooter {
+  position:fixed;
+  bottom:0;
+  right:0;
+  margin:12px;
+  padding:10px 16px;
+  background:linear-gradient(135deg, rgba(200,148,42,.15), rgba(200,148,42,.05));
+  border:1px solid rgba(200,148,42,.4);
+  border-radius:6px;
+  font-family:'Cinzel',serif;
+  font-size:.7rem;
+  letter-spacing:.1em;
+  color:var(--gold-lt);
+  text-transform:uppercase;
+  box-shadow:0 0 20px rgba(200,148,42,.2);
+  animation:creatorGlow 3s ease-in-out infinite;
+  z-index:9900;
+  pointer-events:none;
+  text-align:center;
+  min-width:120px;
+}
+
+@keyframes creatorGlow {
+  0%, 100% { box-shadow:0 0 20px rgba(200,148,42,.2), 0 0 40px rgba(200,148,42,.1); }
+  50% { box-shadow:0 0 30px rgba(200,148,42,.4), 0 0 60px rgba(200,148,42,.2); }
+}
+
+#creatorFooter .creator-label {
+  display:block;
+  font-size:.6rem;
+  color:var(--dim);
+  margin-bottom:3px;
+  letter-spacing:.12em;
+}
+
+#creatorFooter .creator-name {
+  display:block;
+  font-size:.8rem;
+  color:var(--gold-lt);
+  font-weight:700;
+  text-shadow:0 0 10px rgba(200,148,42,.5);
+  animation:creatorPulse 2s ease-in-out infinite;
+}
+
+@keyframes creatorPulse {
+  0%, 100% { opacity:1; }
+  50% { opacity:.8; }
+}
+
+@media(max-width:600px){
+  #creatorFooter {
+    bottom:60px;
+    right:8px;
+    padding:8px 12px;
+    font-size:.6rem;
+    min-width:100px;
+  }
+  #creatorFooter .creator-label { font-size:.5rem; }
+  #creatorFooter .creator-name { font-size:.7rem; }
+}
 
 .feature-card { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:24px; text-align:left; }
 .feature-icon { font-size:2rem; margin-bottom:12px; }
@@ -431,7 +531,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
 <div id="profileModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:28px;width:100%;max-width:420px;margin:20px;position:relative;">
     <button onclick="closeProfile()" style="position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--dim);font-size:1.2rem;cursor:pointer;">✕</button>
-    <div style="font-family:'Cinzel',serif;font-size:1rem;color:var(--gold);margin-bottom:20px;">👤 Mon Compte — <span id="profileUsername" style="color:var(--gold-lt);"></span></div>
+    <div style="font-family:'Cinzel',serif;font-size:1rem;color:var(--gold);margin-bottom:20px;">👤 Mon Compte — <span id="profileUsername" class="no-i18n" data-no-translate style="color:var(--gold-lt);"></span></div>
 
     <!-- Changer le mot de passe -->
     <div style="background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:14px;">
@@ -580,6 +680,11 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
     <span style="font-size:1.4rem">⚔️</span>
   </div>
   <p class="subtitle">Outils de Jeu</p>
+  <div id="topLangBar" class="top-lang-bar">
+    <button class="lang-btn active" id="lang-fr" onclick="switchLang('fr')">🇫🇷 FR</button>
+    <button class="lang-btn" id="lang-en" onclick="switchLang('en')">🇺🇸 EN</button>
+    <button class="lang-btn" id="lang-ru" onclick="switchLang('ru')">🇷🇺 RU</button>
+  </div>
   <!-- Navigation Páginas -->
   <div id="navButtons" style="display:flex;gap:12px;justify-content:center;margin-top:20px;padding:0 20px;">
     <button class="page-btn" onclick="switchPage('welcome',this)">🏰 Bienvenue</button>
@@ -587,10 +692,11 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
     <button class="page-btn active" onclick="switchPage('page1',this)">📊 Calculateur</button>
     <button class="page-btn" onclick="switchPage('heroSkills',this)">🧠 Compétence Hero</button>
     <button class="page-btn" onclick="switchPage('pairs',this)">⚡ Paires Hero</button>
-    <button id="adminNavBtn" class="page-btn" onclick="switchPage('admin',this)" style="display:none;border-color:rgba(233,69,96,.5);color:#ff9eab;">🛡 Admin</button>
+    <button id="adminNavBtn" class="page-btn" onclick="switchPage('admin',this)" style="display:none;border-color:rgba(233,69,96,.5);color:#ff9eab;">🛡 Admin <span id="adminUnreadBadge" style="display:none;margin-left:6px;padding:1px 7px;border-radius:999px;background:rgba(233,69,96,.24);border:1px solid rgba(233,69,96,.5);color:#ff9eab;font-size:.66rem;line-height:1.6;">0</span></button>
   </div>
   <div id="userInfo" class="user-info" style="display:none;">
-    <button onclick="openProfile()" style="background:rgba(200,148,42,.15);border:1px solid var(--gold-dim);border-radius:3px;color:var(--gold);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;padding:5px 12px;cursor:pointer;transition:all .15s;">👤 <span id="currentUserDisplay"></span><span id="premiumBadge" class="premium-badge">Premium</span></button>
+    <button onclick="openProfile()" style="background:rgba(200,148,42,.15);border:1px solid var(--gold-dim);border-radius:3px;color:var(--gold);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;padding:5px 12px;cursor:pointer;transition:all .15s;">👤 <span id="currentUserDisplay" class="no-i18n" data-no-translate></span><span id="premiumBadge" class="premium-badge">Premium</span></button>
+    <button id="supportBtn" onclick="openSupportModal()" style="padding:5px 12px;background:rgba(64,192,192,.14);border:1px solid rgba(64,192,192,.45);border-radius:3px;color:#8de2e2;font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;cursor:pointer;transition:all .15s;">💬 <span id="supportBtnLabel">Support</span></button>
     <button onclick="logout()" style="padding:5px 12px;background:rgba(160,48,48,.2);border:1px solid rgba(160,48,48,.4);border-radius:3px;color:#e08080;font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;cursor:pointer;transition:all .15s;">🚪 Déconnexion</button>
   </div>
 </header>
@@ -929,7 +1035,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
           <div style="font-family:'Cinzel',serif;font-size:.8rem;color:var(--gold);letter-spacing:.1em;margin-bottom:12px;">⏱ CONVERTISSEUR D'ACCÉLÉRATEURS → MINUTES</div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">
             <div><label>× 1 min</label><input type="number" id="j2a1"    value="0" min="0" oninput="convAcc('j2')"></div>
-            <div><label>× 3 min</label><input type="number" id="j2a3"    value="0" min="0" oninput="convAcc('j2')"></div>
+            <div><label>× 5 min</label><input type="number" id="j2a5"    value="0" min="0" oninput="convAcc('j2')"></div>
             <div><label>× 10 min</label><input type="number" id="j2a10"  value="0" min="0" oninput="convAcc('j2')"></div>
             <div><label>× 30 min</label><input type="number" id="j2a30"  value="0" min="0" oninput="convAcc('j2')"></div>
             <div><label>× 1h</label><input type="number" id="j2a60"   value="0" min="0" oninput="convAcc('j2')"></div>
@@ -1006,7 +1112,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
             <div style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;">⏱ Convertisseur d'accélérateurs → minutes</div>
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;">
               <div><label>× 1 min</label><input type="number" id="j3a1"    value="0" min="0" oninput="convAcc('j3')"></div>
-              <div><label>× 3 min</label><input type="number" id="j3a3"    value="0" min="0" oninput="convAcc('j3')"></div>
+              <div><label>× 5 min</label><input type="number" id="j3a5"    value="0" min="0" oninput="convAcc('j3')"></div>
               <div><label>× 10 min</label><input type="number" id="j3a10"  value="0" min="0" oninput="convAcc('j3')"></div>
               <div><label>× 30 min</label><input type="number" id="j3a30"  value="0" min="0" oninput="convAcc('j3')"></div>
               <div><label>× 1h</label><input type="number" id="j3a60"   value="0" min="0" oninput="convAcc('j3')"></div>
@@ -1163,7 +1269,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
             <div style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;">⏱ Convertisseur d'accélérateurs → minutes</div>
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;">
               <div><label>× 1 min</label><input type="number" id="j5a1"    value="0" min="0" oninput="convAcc('j5')"></div>
-              <div><label>× 3 min</label><input type="number" id="j5a3"    value="0" min="0" oninput="convAcc('j5')"></div>
+              <div><label>× 5 min</label><input type="number" id="j5a5"    value="0" min="0" oninput="convAcc('j5')"></div>
               <div><label>× 10 min</label><input type="number" id="j5a10"  value="0" min="0" oninput="convAcc('j5')"></div>
               <div><label>× 30 min</label><input type="number" id="j5a30"  value="0" min="0" oninput="convAcc('j5')"></div>
               <div><label>× 1h</label><input type="number" id="j5a60"   value="0" min="0" oninput="convAcc('j5')"></div>
@@ -1260,7 +1366,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
   <div class="panel-hd"><h3>✍️ Proposer une paire</h3></div>
   <div class="panel-body">
     <div id="sharePairFormContent">
-    <div style="font-size:.8rem;color:var(--dim);margin-bottom:14px;">Publié en tant que : <strong id="shareAuthorDisplay" style="color:var(--gold);"></strong></div>
+    <div style="font-size:.8rem;color:var(--dim);margin-bottom:14px;">Publié en tant que : <strong id="shareAuthorDisplay" class="no-i18n" data-no-translate style="color:var(--gold);"></strong></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
       <div>
         <label style="font-size:.78rem;color:var(--gold-dim);display:block;margin-bottom:4px;">Héros 1</label>
@@ -1370,14 +1476,1049 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
 
   <!-- Table utilisateurs -->
   <div id="adminTableWrap" style="overflow-x:auto;"></div>
+
+  <!-- Messages support -->
+  <div class="panel" style="margin-top:24px;">
+    <div class="panel-hd"><h3>💬 <span id="adminSupportTitle">Boîte support admin</span></h3></div>
+    <div id="adminSupportWrap" class="panel-body"></div>
+  </div>
 </div>
 <!-- FIN PAGE ADMIN -->
+
+<!-- MODAL SUPPORT -->
+<div id="supportModal" style="display:none;position:fixed;inset:0;z-index:10020;background:rgba(0,0,0,.76);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:18px;">
+  <div style="width:min(560px,96vw);background:linear-gradient(180deg,rgba(21,25,40,.98),rgba(12,14,24,.98));border:1px solid rgba(64,192,192,.4);border-radius:6px;box-shadow:0 15px 55px rgba(0,0,0,.55);">
+    <div style="padding:14px 16px;border-bottom:1px solid rgba(64,192,192,.24);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <h3 id="supportModalTitle" style="margin:0;font-family:'Cinzel',serif;font-size:1rem;letter-spacing:.08em;color:#8de2e2;">💬 Contacter le support</h3>
+      <button onclick="closeSupportModal()" style="padding:6px 10px;background:rgba(160,48,48,.16);border:1px solid rgba(160,48,48,.38);border-radius:3px;color:#e08080;cursor:pointer;font-size:.72rem;">✕</button>
+    </div>
+    <div style="padding:16px;display:grid;gap:10px;">
+      <label id="supportSubjectLabel" for="supportSubject" style="font-size:.78rem;color:var(--dim);letter-spacing:.06em;">Sujet (optionnel)</label>
+      <input id="supportSubject" type="text" maxlength="120" style="padding:9px 11px;background:rgba(255,255,255,.05);border:1px solid rgba(64,192,192,.3);border-radius:3px;color:var(--white);font-size:.86rem;" />
+      <label id="supportMessageLabel" for="supportMessage" style="font-size:.78rem;color:var(--dim);letter-spacing:.06em;">Message</label>
+      <textarea id="supportMessage" rows="6" maxlength="2000" style="padding:10px 11px;background:rgba(255,255,255,.05);border:1px solid rgba(64,192,192,.3);border-radius:3px;color:var(--white);font-size:.86rem;resize:vertical;"></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px;">
+        <button id="supportCloseBtn" onclick="closeSupportModal()" style="padding:8px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:3px;color:var(--dim);font-size:.78rem;cursor:pointer;">Fermer</button>
+        <button id="supportSendBtn" onclick="submitSupportMessage()" style="padding:8px 12px;background:rgba(64,192,192,.2);border:1px solid rgba(64,192,192,.45);border-radius:3px;color:#8de2e2;font-size:.78rem;cursor:pointer;">Envoyer</button>
+      </div>
+      <div style="height:1px;background:rgba(64,192,192,.18);margin:2px 0;"></div>
+      <div id="supportHistoryTitle" style="font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.11em;color:var(--gold-dim);text-transform:uppercase;">Historique des messages</div>
+      <div id="supportHistoryList" style="max-height:210px;overflow:auto;padding-right:4px;"></div>
+    </div>
+  </div>
+</div>
 
 </div>
 
 <script>
 let currentUser = null;
 let isAdmin = false;
+let currentLang = localStorage.getItem('fw_lang') || 'fr';
+let adminReplyTargetId = null;
+
+// ── Système de traduction multilingue complet ──
+const TRANSLATIONS = {
+  fr: {
+    'FATE WAR': 'FATE WAR',
+    'Outils de Jeu': 'Outils de Jeu',
+    'Bienvenue': 'Bienvenue',
+    'Section Calculateur': 'Section Calculateur',
+    'Calculateur': 'Calculateur',
+    'Compétence Hero': 'Compétence Hero',
+    'Paires Hero': 'Paires Hero',
+    'Admin': 'Admin',
+    'Déconnexion': 'Déconnexion',
+    'Bienvenue sur Fate War Outils': 'Bienvenue sur Fate War Outils',
+    'Calculateur de Troupes Premium': 'Calculateur de Troupes Premium',
+    'Accès Premium : calcule exactement combien de ressources et d\'accélérateurs tu as besoin pour former tes troupes.': 'Accès Premium : calcule exactement combien de ressources et d\'accélérateurs tu as besoin pour former tes troupes.',
+    'Infanterie, Cavalerie, Archers, Bêtes': 'Infanterie, Cavalerie, Archers, Bêtes',
+    'Niveaux T1 à T7': 'Niveaux T1 à T7',
+    'Bonus de réduction (recherche)': 'Bonus de réduction (recherche)',
+    'Calcul des accélérateurs nécessaires': 'Calcul des accélérateurs nécessaires',
+    'Événement — Clash des Tribus': 'Événement — Clash des Tribus',
+    'Calcule tes points d\'événement automatiquement selon le temps d\'entraînement et ton buff.': 'Calcule tes points d\'événement automatiquement selon le temps d\'entraînement et ton buff.',
+    'Points par minute d\'entraînement': 'Points par minute d\'entraînement',
+    'Buff de points ajustable (%)': 'Buff de points ajustable (%)',
+    'Relié au calculateur de troupes': 'Relié au calculateur de troupes',
+    'Durée réelle par casernes': 'Durée réelle par casernes',
+    'Points d\'événement gagnés': 'Points d\'événement gagnés',
+    'Casernes': 'Casernes',
+    'Durée réelle': 'Durée réelle',
+    'Pts / troupe': 'Pts / troupe',
+    'Sans buff': 'Sans buff',
+    '1 min d\'accélérateur = 4 pts': '1 min d\'accélérateur = 4 pts',
+    '+10 puissance de construction = 7 pts': '+10 puissance de construction = 7 pts',
+    'Jour final — combine tes troupes, ta construction et ta stamina pour maximiser tes points !': 'Jour final — combine tes troupes, ta construction et ta stamina pour maximiser tes points !',
+    'Clash des Tribus — Jours 1 à 5': 'Clash des Tribus — Jours 1 à 5',
+    'Un calculateur dédié pour chaque jour du Clash avec ses propres mécaniques de points.': 'Un calculateur dédié pour chaque jour du Clash avec ses propres mécaniques de points.',
+    'Jour 1 : Gemmes & Stamina': 'Jour 1 : Gemmes & Stamina',
+    'Jour 2 : Accélérateurs & Construction': 'Jour 2 : Accélérateurs & Construction',
+    'Jour 3 : Stamina + Recherche + Rech. Avancée': 'Jour 3 : Stamina + Recherche + Rech. Avancée',
+    'Jour 4 : Souvenirs (Légendaire/Épique/Rare)': 'Jour 4 : Souvenirs (Légendaire/Épique/Rare)',
+    'Jour 5 : Combiné (Formation + Construction + Stamina)': 'Jour 5 : Combiné (Formation + Construction + Stamina)',
+    'Convertisseur Gemmes & Stamina': 'Convertisseur Gemmes & Stamina',
+    'Détermine combien de gemmes acheter pour atteindre ton objectif de points avec la stamina.': 'Détermine combien de gemmes acheter pour atteindre ton objectif de points avec la stamina.',
+    'Taux : 50 stamina = 25 gemmes': 'Taux : 50 stamina = 25 gemmes',
+    'Objectif de points + buff %': 'Objectif de points + buff %',
+    'Recommandation de packs optimaux': 'Recommandation de packs optimaux',
+    'Tableau de référence interactif': 'Tableau de référence interactif',
+    'Paires hero': 'Paires hero',
+    'Explore les meilleures combinaisons de héros calculées par algorithme de synergie.': 'Explore les meilleures combinaisons de héros calculées par algorithme de synergie.',
+    'Paires par classe de troupe': 'Paires par classe de troupe',
+    'Filtres de contexte': 'Filtres de contexte',
+    'Système de votes communautaire': 'Système de votes communautaire',
+    'Système de Comptes': 'Système de Comptes',
+    'Chaque joueur a son propre compte avec ses paramètres sauvegardés séparément.': 'Chaque joueur a son propre compte avec ses paramètres sauvegardés séparément.',
+    'Connexion sécurisée par mot de passe': 'Connexion sécurisée par mot de passe',
+    'Données isolées par compte': 'Données isolées par compte',
+    'Sauvegarde automatique': 'Sauvegarde automatique',
+    'Changer de compte facilement': 'Changer de compte facilement',
+    'Nom d\'utilisateur': 'Nom d\'utilisateur',
+    'Mot de passe': 'Mot de passe',
+    'SE CONNECTER': 'SE CONNECTER',
+    'Créer mon compte': 'Créer mon compte',
+    'Type de troupe': 'Type de troupe',
+    'Quantité': 'Quantité',
+    'Bonus ressources (%)': 'Bonus ressources (%)',
+    'Bonus temps (%)': 'Bonus temps (%)',
+    'Calculer': 'Calculer',
+    'Nourriture': 'Nourriture',
+    'Bois': 'Bois',
+    'Pierre': 'Pierre',
+    'Fer': 'Fer',
+    'Temps total': 'Temps total',
+    'Accélérateurs nécessaires': 'Accélérateurs nécessaires',
+    'Pseudo': 'Pseudo',
+    'Email': 'Email',
+    'Créer un compte': 'Créer un compte',
+    'Se connecter': 'Se connecter',
+    'Premium': 'Premium',
+    'Gratuit': 'Gratuit',
+    'Accès': 'Accès',
+    'Tous les utilisateurs': 'Tous les utilisateurs',
+    'Premium actif': 'Premium actif',
+    'Expiré': 'Expiré',
+    'Actualiser': 'Actualiser',
+    'Support': 'Support',
+    'Contacter le support': 'Contacter le support',
+    'Sujet (optionnel)': 'Sujet (optionnel)',
+    'Message': 'Message',
+    'Fermer': 'Fermer',
+    'Envoyer': 'Envoyer',
+    'Message envoyé au support.': 'Message envoyé au support.',
+    'Veuillez écrire un message.': 'Veuillez écrire un message.',
+    'Boîte support admin': 'Boîte support admin',
+    'Aucun message support pour le moment.': 'Aucun message support pour le moment.',
+    'De': 'De',
+    'Sujet': 'Sujet',
+    'Date': 'Date',
+    'Statut': 'Statut',
+    'Non lu': 'Non lu',
+    'Lu': 'Lu',
+    'Marquer lu': 'Marquer lu',
+    'Supprimer': 'Supprimer',
+    'Sans sujet': 'Sans sujet',
+    'Historique des messages': 'Historique des messages',
+    'Aucun message envoyé pour le moment.': 'Aucun message envoyé pour le moment.',
+    'Répondre': 'Répondre',
+    'Réponse admin': 'Réponse admin',
+    'Réponse envoyée.': 'Réponse envoyée.',
+    'Écrire une réponse pour ce joueur.': 'Écrire une réponse pour ce joueur.',
+    'Annuler': 'Annuler',
+    'Écris ta réponse ici...': 'Écris ta réponse ici...',
+    'Créateur': 'Créateur',
+    'Posté par': 'Posté par',
+    'Anonyme': 'Anonyme',
+    'Compositions de la Communauté': 'Compositions de la Communauté',
+    'Aucune paire ne correspond aux filtres sélectionnés.': 'Aucune paire ne correspond aux filtres sélectionnés.',
+    'Synergie:': 'Synergie:',
+    'Inconnu': 'Inconnu',
+    'Likes': 'Likes',
+    'Dislikes': 'Dislikes'
+  },
+  en: {
+    'FATE WAR': 'FATE WAR',
+    'Outils de Jeu': 'Game Tools',
+    'Bienvenue': 'Welcome',
+    'Section Calculateur': 'Calculator Hub',
+    'Calculateur': 'Calculator',
+    'Compétence Hero': 'Hero Skills',
+    'Paires Hero': 'Hero Pairs',
+    'Admin': 'Admin',
+    'Déconnexion': 'Logout',
+    'Bienvenue sur Fate War Outils': 'Welcome to Fate War Tools',
+    'Calculateur de Troupes Premium': 'Premium Troop Calculator',
+    'Accès Premium : calcule exactement combien de ressources et d\'accélérateurs tu as besoin pour former tes troupes.': 'Premium Access: Calculate exactly how many resources and speedups you need to form your troops.',
+    'Infanterie, Cavalerie, Archers, Bêtes': 'Infantry, Cavalry, Archers, Beasts',
+    'Niveaux T1 à T7': 'Levels T1 to T7',
+    'Bonus de réduction (recherche)': 'Reduction Bonus (Research)',
+    'Calcul des accélérateurs nécessaires': 'Required Speedups Calculation',
+    'Événement — Clash des Tribus': 'Event — Clash of Tribes',
+    'Calcule tes points d\'événement automatiquement selon le temps d\'entraînement et ton buff.': 'Calculate your event points automatically based on training time and buffs.',
+    'Points par minute d\'entraînement': 'Points per minute of training',
+    'Buff de points ajustable (%)': 'Adjustable Points Buff (%)',
+    'Relié au calculateur de troupes': 'Linked to troop calculator',
+    'Durée réelle par casernes': 'Real time per barracks',
+    'Points d\'événement gagnés': 'Event points earned',
+    'Casernes': 'Barracks',
+    'Durée réelle': 'Real duration',
+    'Pts / troupe': 'Pts / troop',
+    'Sans buff': 'Without buff',
+    '1 min d\'accélérateur = 4 pts': '1 speedup min = 4 pts',
+    '+10 puissance de construction = 7 pts': '+10 construction power = 7 pts',
+    'Jour final — combine tes troupes, ta construction et ta stamina pour maximiser tes points !': 'Final day - combine your troops, construction and stamina to maximize your points!',
+    'Clash des Tribus — Jours 1 à 5': 'Clash of Tribes — Days 1 to 5',
+    'Un calculateur dédié pour chaque jour du Clash avec ses propres mécaniques de points.': 'A dedicated calculator for each Clash day with its own point mechanics.',
+    'Jour 1 : Gemmes & Stamina': 'Day 1: Gems & Stamina',
+    'Jour 2 : Accélérateurs & Construction': 'Day 2: Speedups & Construction',
+    'Jour 3 : Stamina + Recherche + Rech. Avancée': 'Day 3: Stamina + Research + Advanced Research',
+    'Jour 4 : Souvenirs (Légendaire/Épique/Rare)': 'Day 4: Mementos (Legendary/Epic/Rare)',
+    'Jour 5 : Combiné (Formation + Construction + Stamina)': 'Day 5: Combined (Formation + Construction + Stamina)',
+    'Convertisseur Gemmes & Stamina': 'Gems & Stamina Converter',
+    'Détermine combien de gemmes acheter pour atteindre ton objectif de points avec la stamina.': 'Determine how many gems to buy to reach your points goal with stamina.',
+    'Taux : 50 stamina = 25 gemmes': 'Rate: 50 stamina = 25 gems',
+    'Objectif de points + buff %': 'Points goal + buff %',
+    'Recommandation de packs optimaux': 'Optimal packs recommendation',
+    'Tableau de référence interactif': 'Interactive reference table',
+    'Paires hero': 'Hero Pairs',
+    'Explore les meilleures combinaisons de héros calculées par algorithme de synergie.': 'Explore the best hero combinations calculated by synergy algorithm.',
+    'Paires par classe de troupe': 'Pairs by troop class',
+    'Filtres de contexte': 'Context filters',
+    'Système de votes communautaire': 'Community voting system',
+    'Système de Comptes': 'Account System',
+    'Chaque joueur a son propre compte avec ses paramètres sauvegardés séparément.': 'Each player has their own account with separately saved settings.',
+    'Connexion sécurisée par mot de passe': 'Secure password login',
+    'Données isolées par compte': 'Data isolated by account',
+    'Sauvegarde automatique': 'Automatic saving',
+    'Changer de compte facilement': 'Change accounts easily',
+    'Nom d\'utilisateur': 'Username',
+    'Mot de passe': 'Password',
+    'SE CONNECTER': 'LOGIN',
+    'Créer mon compte': 'Create Account',
+    'Type de troupe': 'Troop Type',
+    'Quantité': 'Quantity',
+    'Bonus ressources (%)': 'Resource Bonus (%)',
+    'Bonus temps (%)': 'Time Bonus (%)',
+    'Calculer': 'Calculate',
+    'Nourriture': 'Food',
+    'Bois': 'Wood',
+    'Pierre': 'Stone',
+    'Fer': 'Iron',
+    'Temps total': 'Total Time',
+    'Accélérateurs nécessaires': 'Required Speedups',
+    'Pseudo': 'Username',
+    'Email': 'Email',
+    'Créer un compte': 'Create Account',
+    'Se connecter': 'Login',
+    'Premium': 'Premium',
+    'Gratuit': 'Free',
+    'Accès': 'Access',
+    'Tous les utilisateurs': 'All Users',
+    'Premium actif': 'Active Premium',
+    'Expiré': 'Expired',
+    'Actualiser': 'Refresh',
+    'Mon Compte —': 'My Account —',
+    'Changer le mot de passe': 'Change password',
+    'Mot de passe actuel': 'Current password',
+    'Nouveau mot de passe (4+ caractères)': 'New password (4+ characters)',
+    'Confirmer le nouveau mot de passe': 'Confirm new password',
+    'Mot de passe modifié !': 'Password updated!',
+    'Changer': 'Change',
+    'Informations': 'Information',
+    'Changer de compte': 'Switch account',
+    'Zone de danger': 'Danger zone',
+    'Supprime définitivement ton compte et toutes tes données.': 'Permanently delete your account and all your data.',
+    'Supprimer mon compte': 'Delete my account',
+    'Connexion': 'Login',
+    'Comptes enregistrés': 'Saved accounts',
+    'Pseudo ou email': 'Username or email',
+    'Ton pseudo ou ton email': 'Your username or your email',
+    'Se souvenir de moi': 'Remember me',
+    '3 à 20 caractères': '3 to 20 characters',
+    'Données sauvegardées localement · Chaque compte est isolé': 'Data saved locally · Each account is isolated',
+    'Guide de Démarrage Rapide': 'Quick Start Guide',
+    'ENTRER LES COÛTS': 'ENTER COSTS',
+    'ÉVÉNEMENTS': 'EVENTS',
+    'HÉROS': 'HEROES',
+    'Commencer à utiliser l\'outil': 'Start using the tool',
+    'Calculateur Principal': 'Main Calculator',
+    'Accès à tous les calculs de troupes, coûts, accélérateurs et événements.': 'Access all troop calculations, costs, speedups, and events.',
+    'Ouvrir le calculateur': 'Open calculator',
+    'Jours 1 à 5 avec les outils de conversion et de points.': 'Days 1 to 5 with conversion and point tools.',
+    'Voir les jours Clash': 'View Clash days',
+    'Convertisseur gemmes/stamina et estimation des packs.': 'Gems/stamina converter and pack estimation.',
+    'Ouvrir le convertisseur': 'Open converter',
+    'Accès rapide': 'Quick access',
+    'Calculateur de troupes': 'Troop calculator',
+    'Compétences Hero': 'Hero skills',
+    'Calculateur de Troupes': 'Troop Calculator',
+    'Paramètres': 'Settings',
+    'Niveau (Tier)': 'Level (Tier)',
+    'Quantité de troupes': 'Troop quantity',
+    'Réduction de ressources (%)': 'Resource reduction (%)',
+    'Réduction de temps (%)': 'Time reduction (%)',
+    'Résultats': 'Results',
+    'Sélectionnez vos paramètres et cliquez sur': 'Select your settings and click',
+    'Prix & Temps — 1 Troupe': 'Costs & Time — 1 Troop',
+    'Nombre de casernes actives': 'Number of active barracks',
+    'Buff de points (%)': 'Points buff (%)',
+    'Lance un calcul d\'abord pour voir tes points': 'Run a calculation first to see your points',
+    'Voir les offres d\'abonnement': 'View subscription offers',
+    'S\'abonner': 'Subscribe',
+    'Fermer': 'Close',
+    'Débloquez toutes les fonctionnalités du calculateur Fate War': 'Unlock all Fate War calculator features',
+    'Mensuel': 'Monthly',
+    'par mois': 'per month',
+    'Populaire': 'Popular',
+    'Annuel': 'Yearly',
+    'par an': 'per year',
+    'Économisez 50%': 'Save 50%',
+    'À vie': 'Lifetime',
+    'paiement unique': 'one-time payment',
+    'Accès illimité': 'Unlimited access',
+    'Adresse e-mail': 'Email address',
+    'Moyen de paiement': 'Payment method',
+    'Carte bancaire': 'Bank card',
+    'Code promo': 'Promo code',
+    'CODE PROMO (optionnel)': 'PROMO CODE (optional)',
+    'Appliquer': 'Apply',
+    'Commencer — $30 / an': 'Start — $30 / year',
+    'Paiement sécurisé • Annulation à tout moment': 'Secure payment • Cancel anytime',
+    'Abonnement activé !': 'Subscription activated!',
+    '⚠ Trop court (3+ caractères)': '⚠ Too short (3+ characters)',
+    '⚠ Trop long (max 20)': '⚠ Too long (max 20)',
+    '✕ Pseudo déjà pris': '✕ Username already taken',
+    '✔ Disponible': '✔ Available',
+    'Compte créé. Vérifie ton email puis connecte-toi.': 'Account created. Check your email then sign in.',
+    '✔ Sauvegardé !': '✔ Saved!',
+    'Erreur sauvegarde.': 'Save error.',
+    'Activer l\'accès gratuit': 'Activate free access',
+    '✓ Code valide — Accès à vie GRATUIT !': '✓ Valid code — FREE lifetime access!',
+    '✗ Code promo invalide': '✗ Invalid promo code',
+    'Compte introuvable. Veuillez vous reconnecter.': 'Account not found. Please sign in again.',
+    'Accès à vie activé gratuitement !': 'Free lifetime access activated!',
+    'Toutes les fonctionnalités sont débloquées.': 'All features are now unlocked.',
+    'Configuration Stripe non finalisée.\nVeuillez contacter l\'administrateur du site.': 'Stripe configuration is not finalized.\nPlease contact the site administrator.',
+    'Clash des Tribus': 'Clash of Tribes',
+    'JOUR 1': 'DAY 1',
+    'JOUR 2': 'DAY 2',
+    'JOUR 3': 'DAY 3',
+    'JOUR 4': 'DAY 4',
+    'JOUR 5': 'DAY 5',
+    'Convertisseur Gemmes / Stamina / Points': 'Gems / Stamina / Points Converter',
+    'Objectif de points visé': 'Target points goal',
+    'Points actuels': 'Current points',
+    'Points par stamina': 'Points per stamina',
+    'Stamina déjà disponible': 'Stamina already available',
+    'Gemmes déjà disponibles': 'Gems already available',
+    'Entre un objectif de points pour calculer': 'Enter a points goal to calculate',
+    'Tableau de référence': 'Reference table',
+    'Calculateur — Accélérateurs & Construction': 'Calculator - Speedups & Construction',
+    'Pts / min d\'accélérateur': 'Pts / speedup minute',
+    'Pts / +10 puissance construction': 'Pts / +10 construction power',
+    'Accélérateurs disponibles (min)': 'Available speedups (min)',
+    'Puissance construction disponible': 'Available construction power',
+    'Entre un objectif pour calculer': 'Enter a goal to calculate',
+    'Tableau de référence — Accélérateurs': 'Reference table - Speedups',
+    'Points disponibles avec tes ressources': 'Available points with your resources',
+    'Objectif atteignable !': 'Goal reachable!',
+    'Stamina totale nécessaire': 'Total stamina needed',
+    'Stamina disponible': 'Available stamina',
+    'Gemmes disponibles': 'Available gems',
+    'Stamina manquante': 'Missing stamina',
+    'Gemmes à acheter': 'Gems to buy',
+    'Packs recommandés': 'Recommended packs',
+    'Pts accélérateurs': 'Speedup points',
+    'Pts construction': 'Construction points',
+    'Pour combler avec des accélérateurs': 'To fill with speedups',
+    'total d\'accélérateurs nécessaires': 'total speedups needed',
+    'Pour combler avec la construction': 'To fill with construction',
+    'à gagner en construction': 'to gain in construction',
+    'paliers de +10 puissance': 'steps of +10 power',
+    'Calculateur — Stamina & Recherche': 'Calculator - Stamina & Research',
+    'Pts / +10 puissance de recherche': 'Pts / +10 research power',
+    'Puissance recherche disponible': 'Available research power',
+    'Pts / connaissance avancée': 'Pts / advanced knowledge',
+    'Connaissances avancées disponibles': 'Available advanced knowledges',
+    'Entre tes ressources pour voir tes points': 'Enter your resources to see your points',
+    'Calculateur — Souvenirs': 'Calculator - Mementos',
+    'Points par souvenir': 'Points per memento',
+    'Souvenirs disponibles': 'Available mementos',
+    'Entre tes souvenirs pour voir tes points': 'Enter your mementos to see your points',
+    'Calculateur — Jour 5 (Combiné)': 'Calculator - Day 5 (Combined)',
+    'Tier de troupe': 'Troop tier',
+    'Pts / troupe (tier sélectionné)': 'Pts / troop (selected tier)',
+    'Pts / min d\'accélérateur': 'Pts / speedup minute',
+    'Pts / +10 puissance de construction': 'Pts / +10 construction power',
+    'Compétence Hero': 'Hero Skill',
+    'Configuration des compétences': 'Skill configuration',
+    'Héros': 'Hero',
+    'Réinitialiser': 'Reset',
+    'Calculateur Mementos': 'Mementos Calculator',
+    'Inclure déblocage héros (+10)': 'Include hero unlock (+10)',
+    'Coût compétences': 'Skills cost',
+    'Coût total affiché': 'Displayed total cost',
+    'Reste à investir': 'Remaining to invest',
+    'Progression': 'Progress',
+    'Ajuste les niveaux de Skill 1 à Skill 4 avec les boutons +/- (minimum 1, maximum 5).': 'Adjust Skill 1 to Skill 4 levels with +/- buttons (minimum 1, maximum 5).',
+    'Paires de Héros': 'Hero Pairs',
+    'Proposer une paire': 'Suggest a pair',
+    'Publié en tant que :': 'Posted as:',
+    'Héros 1': 'Hero 1',
+    'Héros 2': 'Hero 2',
+    'Tous contextes': 'All contexts',
+    'Calculateur Mementos': 'Mementos Calculator',
+    'Convertisseur d\'accélérateurs → minutes': 'Speedup converter -> minutes',
+    'CONVERTISSEUR D\'ACCÉLÉRATEURS → MINUTES': 'SPEEDUP CONVERTER -> MINUTES',
+    'Total en minutes': 'Total in minutes',
+    'Total': 'Total',
+    'champ rempli automatiquement ↓': 'field auto-filled below ↓',
+    'rempli automatiquement ↓': 'auto-filled below ↓',
+    'Taux ajustables.': 'Adjustable rates.',
+    'STAMINA': 'STAMINA',
+    'RECHERCHE': 'RESEARCH',
+    'RECHERCHE AVANCÉE': 'ADVANCED RESEARCH',
+    'SOUVENIR LÉGENDAIRE': 'LEGENDARY MEMENTO',
+    'SOUVENIR ÉPIQUE': 'EPIC MEMENTO',
+    'SOUVENIR RARE': 'RARE MEMENTO',
+    'FORMATION DE TROUPES': 'TROOP TRAINING',
+    'CONSTRUCTION': 'CONSTRUCTION',
+    'lié au calculateur de troupes': 'linked to troop calculator',
+    'auto depuis calculateur': 'auto from calculator',
+    'T3 pts/troupe': 'T3 pts/troop',
+    'T4 pts/troupe': 'T4 pts/troop',
+    'T5 pts/troupe': 'T5 pts/troop',
+    'T6 pts/troupe': 'T6 pts/troop',
+    'T7 pts/troupe': 'T7 pts/troop',
+    'Points disponibles — Total combiné': 'Available points - Combined total',
+    'Points disponibles — Total souvenirs': 'Available points - Total mementos',
+    'Objectif :': 'Goal:',
+    'pts —': 'pts -',
+    '✔ Atteignable !': '✔ Reachable!',
+    'il te manque': 'you are missing',
+    'Entre un objectif pour voir ce qu\'il te manque': 'Enter a goal to see what you are missing',
+    'Entre un objectif pour voir le total': 'Enter a goal to see the total',
+    'Pts Stamina': 'Stamina pts',
+    'Pts Acc. Recherche': 'Research speedup pts',
+    'Pts Puissance Rech.': 'Research power pts',
+    'Pts Rech. Avancée': 'Advanced research pts',
+    'Points manquants': 'Missing points',
+    'Combler avec Stamina': 'Fill with stamina',
+    'gemmes à acheter': 'gems to buy',
+    'Combler avec Recherche': 'Fill with research',
+    'Combler avec Rech. Avancée': 'Fill with advanced research',
+    'connaissances': 'knowledges',
+    'à': 'at',
+    'chacune': 'each',
+    'Pts Légendaire': 'Legendary pts',
+    'Pts Épique': 'Epic pts',
+    'Pts Rare': 'Rare pts',
+    'Pour combler le manque :': 'To fill the gap:',
+    'Combo optimal': 'Optimal combo',
+    '100% Légendaires': '100% Legendary',
+    '100% Épiques': '100% Epic',
+    '100% Rares': '100% Rare',
+    'souvenir': 'memento',
+    'souvenirs': 'mementos',
+    'Pts Formation': 'Training pts',
+    'troupes': 'troops',
+    'Pts Accélérateurs': 'Speedup pts',
+    'Pts Construction': 'Construction pts',
+    'Passif :': 'Passive:',
+    'Légendaire': 'Legendary',
+    'Épique': 'Epic',
+    'Rare': 'Rare',
+    'Économie': 'Economy',
+    'Méta': 'Meta',
+    'Alt :': 'Alt:',
+    'Meilleurs counters contre': 'Best counters against',
+    'Score': 'Score',
+    'Arbres :': 'Trees:',
+    'Éviter :': 'Avoid:'
+    ,
+    'Coût pour': 'Cost for',
+    '1 seule troupe': '1 troop only',
+    'par tier — entrez les vraies valeurs du jeu.': 'per tier - enter real in-game values.',
+    'Temps (s)': 'Time (s)',
+    'PSEUDO': 'USERNAME',
+    'CRÉÉ LE': 'CREATED',
+    'DERNIÈRE CONNEXION': 'LAST LOGIN',
+    'STATUT': 'STATUS',
+    'EXPIRATION': 'EXPIRY',
+    'ACTIONS': 'ACTIONS',
+    'stamina': 'stamina',
+    'gemmes': 'gems',
+    'min': 'min',
+    '— il te manque des ressources': '- you are missing resources',
+    'Support': 'Support',
+    'Contacter le support': 'Contact support',
+    'Sujet (optionnel)': 'Subject (optional)',
+    'Message': 'Message',
+    'Fermer': 'Close',
+    'Envoyer': 'Send',
+    'Message envoyé au support.': 'Message sent to support.',
+    'Veuillez écrire un message.': 'Please write a message.',
+    'Boîte support admin': 'Admin support inbox',
+    'Aucun message support pour le moment.': 'No support messages for now.',
+    'De': 'From',
+    'Sujet': 'Subject',
+    'Date': 'Date',
+    'Statut': 'Status',
+    'Non lu': 'Unread',
+    'Lu': 'Read',
+    'Marquer lu': 'Mark as read',
+    'Supprimer': 'Delete',
+    'Sans sujet': 'No subject',
+    'Historique des messages': 'Message history',
+    'Aucun message envoyé pour le moment.': 'No message sent yet.',
+    'Répondre': 'Reply',
+    'Réponse admin': 'Admin reply',
+    'Réponse envoyée.': 'Reply sent.',
+    'Écrire une réponse pour ce joueur.': 'Write a reply for this player.',
+    'Annuler': 'Cancel',
+    'Écris ta réponse ici...': 'Write your reply here...',
+    'Créateur': 'Creator',
+    'Posté par': 'Posted by',
+    'Anonyme': 'Anonymous',
+    'Compositions de la Communauté': 'Community compositions',
+    'Aucune paire ne correspond aux filtres sélectionnés.': 'No pair matches the selected filters.',
+    'Synergie:': 'Synergy:',
+    'Inconnu': 'Unknown',
+    'Likes': 'Likes',
+    'Dislikes': 'Dislikes'
+  },
+  ru: {
+    'FATE WAR': 'FATE WAR',
+    'Outils de Jeu': 'Игровые инструменты',
+    'Bienvenue': 'Добро пожаловать',
+    'Section Calculateur': 'Центр калькулятора',
+    'Calculateur': 'Калькулятор',
+    'Compétence Hero': 'Навыки Героя',
+    'Paires Hero': 'Пары Героев',
+    'Admin': 'Администратор',
+    'Déconnexion': 'Выход',
+    'Bienvenue sur Fate War Outils': 'Добро пожаловать на Fate War Tools',
+    'Calculateur de Troupes Premium': 'Премиум калькулятор войск',
+    'Accès Premium : calcule exactement combien de ressources et d\'accélérateurs tu as besoin pour former tes troupes.': 'Премиум доступ: рассчитайте точное количество ресурсов и ускорителей, необходимых для формирования ваших войск.',
+    'Infanterie, Cavalerie, Archers, Bêtes': 'Пехота, Кавалерия, Лучники, Звери',
+    'Niveaux T1 à T7': 'Уровни T1-T7',
+    'Bonus de réduction (recherche)': 'Бонус скидки (исследование)',
+    'Calcul des accélérateurs nécessaires': 'Расчет необходимых ускорителей',
+    'Événement — Clash des Tribus': 'События — Столкновение Племен',
+    'Calcule tes points d\'événement automatiquement selon le temps d\'entraînement et ton buff.': 'Автоматически рассчитывайте очки события в зависимости от времени тренировки и бонусов.',
+    'Points par minute d\'entraînement': 'Очки за минуту тренировки',
+    'Buff de points ajustable (%)': 'Настраиваемый бонус очков (%)',
+    'Relié au calculateur de troupes': 'Связано с калькулятором войск',
+    'Durée réelle par casernes': 'Реальное время на казармы',
+    'Points d\'événement gagnés': 'Полученные очки события',
+    'Casernes': 'Казармы',
+    'Durée réelle': 'Реальная длительность',
+    'Pts / troupe': 'Очк. / войско',
+    'Sans buff': 'Без баффа',
+    '1 min d\'accélérateur = 4 pts': '1 мин ускорителя = 4 очк.',
+    '+10 puissance de construction = 7 pts': '+10 силы строительства = 7 очк.',
+    'Jour final — combine tes troupes, ta construction et ta stamina pour maximiser tes points !': 'Финальный день — объедините войска, строительство и выносливость для максимума очков!',
+    'Clash des Tribus — Jours 1 à 5': 'Столкновение Племен — Дни 1-5',
+    'Un calculateur dédié pour chaque jour du Clash avec ses propres mécaniques de points.': 'Выделенный калькулятор для каждого дня столкновения с собственной механикой очков.',
+    'Jour 1 : Gemmes & Stamina': 'День 1: Драгоценности & Выносливость',
+    'Jour 2 : Accélérateurs & Construction': 'День 2: Ускорители & Строительство',
+    'Jour 3 : Stamina + Recherche + Rech. Avancée': 'День 3: Выносливость + Исследование + Продвинутое исследование',
+    'Jour 4 : Souvenirs (Légendaire/Épique/Rare)': 'День 4: Памятные вещи (Легендарные/Эпические/Редкие)',
+    'Jour 5 : Combiné (Formation + Construction + Stamina)': 'День 5: Комбинированный (Подготовка + Строительство + Выносливость)',
+    'Convertisseur Gemmes & Stamina': 'Конвертер драгоценностей и выносливости',
+    'Détermine combien de gemmes acheter pour atteindre ton objectif de points avec la stamina.': 'Определите, сколько драгоценностей купить, чтобы достичь вашей цели очков с выносливостью.',
+    'Taux : 50 stamina = 25 gemmes': 'Курс: 50 выносливость = 25 драгоценностей',
+    'Objectif de points + buff %': 'Цель очков + бонус %',
+    'Recommandation de packs optimaux': 'Рекомендация оптимальных пакетов',
+    'Tableau de référence interactif': 'Интерактивная справочная таблица',
+    'Paires hero': 'Пары Героев',
+    'Explore les meilleures combinaisons de héros calculées par algorithme de synergie.': 'Исследуйте лучшие комбинации героев, рассчитанные алгоритмом синергии.',
+    'Paires par classe de troupe': 'Пары по классу войск',
+    'Filtres de contexte': 'Контекстные фильтры',
+    'Système de votes communautaire': 'Система голосования сообщества',
+    'Système de Comptes': 'Система Аккаунтов',
+    'Chaque joueur a son propre compte avec ses paramètres sauvegardés séparément.': 'Каждый игрок имеет свой аккаунт с отдельно сохраненными параметрами.',
+    'Connexion sécurisée par mot de passe': 'Безопасный вход по паролю',
+    'Données isolées par compte': 'Данные, изолированные по аккаунту',
+    'Sauvegarde automatique': 'Автосохранение',
+    'Changer de compte facilement': 'Легко менять аккаунты',
+    'Nom d\'utilisateur': 'Имя пользователя',
+    'Mot de passe': 'Пароль',
+    'SE CONNECTER': 'ВОЙТИ',
+    'Créer mon compte': 'Создать аккаунт',
+    'Type de troupe': 'Тип войск',
+    'Quantité': 'Количество',
+    'Bonus ressources (%)': 'Бонус ресурсов (%)',
+    'Bonus temps (%)': 'Бонус времени (%)',
+    'Calculer': 'Рассчитать',
+    'Nourriture': 'Еда',
+    'Bois': 'Дерево',
+    'Pierre': 'Камень',
+    'Fer': 'Железо',
+    'Temps total': 'Общее время',
+    'Accélérateurs nécessaires': 'Необходимые ускорители',
+    'Pseudo': 'Пользователь',
+    'Email': 'Электронная почта',
+    'Créer un compte': 'Создать аккаунт',
+    'Se connecter': 'Вход',
+    'Premium': 'Премиум',
+    'Gratuit': 'Бесплатно',
+    'Accès': 'Доступ',
+    'Tous les utilisateurs': 'Все пользователи',
+    'Premium actif': 'Активный премиум',
+    'Expiré': 'Истекло',
+    'Actualiser': 'Обновить',
+    'Mon Compte —': 'Мой аккаунт —',
+    'Changer le mot de passe': 'Сменить пароль',
+    'Mot de passe actuel': 'Текущий пароль',
+    'Nouveau mot de passe (4+ caractères)': 'Новый пароль (4+ символа)',
+    'Confirmer le nouveau mot de passe': 'Подтвердите новый пароль',
+    'Mot de passe modifié !': 'Пароль изменен!',
+    'Changer': 'Изменить',
+    'Informations': 'Информация',
+    'Changer de compte': 'Сменить аккаунт',
+    'Zone de danger': 'Опасная зона',
+    'Supprime définitivement ton compte et toutes tes données.': 'Безвозвратно удаляет ваш аккаунт и все данные.',
+    'Supprimer mon compte': 'Удалить мой аккаунт',
+    'Connexion': 'Вход',
+    'Comptes enregistrés': 'Сохраненные аккаунты',
+    'Pseudo ou email': 'Ник или email',
+    'Ton pseudo ou ton email': 'Ваш ник или email',
+    'Se souvenir de moi': 'Запомнить меня',
+    '3 à 20 caractères': 'От 3 до 20 символов',
+    'Données sauvegardées localement · Chaque compte est isolé': 'Данные сохраняются локально · Каждый аккаунт изолирован',
+    'Guide de Démarrage Rapide': 'Краткий стартовый гид',
+    'ENTRER LES COÛTS': 'ВВЕСТИ СТОИМОСТЬ',
+    'ÉVÉNEMENTS': 'СОБЫТИЯ',
+    'HÉROS': 'ГЕРОИ',
+    'Commencer à utiliser l\'outil': 'Начать использовать инструмент',
+    'Calculateur Principal': 'Главный калькулятор',
+    'Accès à tous les calculs de troupes, coûts, accélérateurs et événements.': 'Доступ ко всем расчетам войск, затрат, ускорителей и событий.',
+    'Ouvrir le calculateur': 'Открыть калькулятор',
+    'Jours 1 à 5 avec les outils de conversion et de points.': 'Дни 1–5 с инструментами конвертации и очков.',
+    'Voir les jours Clash': 'Смотреть дни Clash',
+    'Convertisseur gemmes/stamina et estimation des packs.': 'Конвертер гемов/выносливости и оценка паков.',
+    'Ouvrir le convertisseur': 'Открыть конвертер',
+    'Accès rapide': 'Быстрый доступ',
+    'Calculateur de troupes': 'Калькулятор войск',
+    'Compétences Hero': 'Навыки героя',
+    'Calculateur de Troupes': 'Калькулятор войск',
+    'Paramètres': 'Параметры',
+    'Niveau (Tier)': 'Уровень (Тир)',
+    'Quantité de troupes': 'Количество войск',
+    'Réduction de ressources (%)': 'Снижение затрат ресурсов (%)',
+    'Réduction de temps (%)': 'Снижение времени (%)',
+    'Résultats': 'Результаты',
+    'Sélectionnez vos paramètres et cliquez sur': 'Выберите параметры и нажмите',
+    'Prix & Temps — 1 Troupe': 'Стоимость и время — 1 войско',
+    'Nombre de casernes actives': 'Количество активных казарм',
+    'Buff de points (%)': 'Бафф очков (%)',
+    'Lance un calcul d\'abord pour voir tes points': 'Сначала запустите расчет, чтобы увидеть очки',
+    'Voir les offres d\'abonnement': 'Смотреть подписки',
+    'S\'abonner': 'Подписаться',
+    'Fermer': 'Закрыть',
+    'Débloquez toutes les fonctionnalités du calculateur Fate War': 'Откройте все функции калькулятора Fate War',
+    'Mensuel': 'Ежемесячно',
+    'par mois': 'в месяц',
+    'Populaire': 'Популярно',
+    'Annuel': 'Ежегодно',
+    'par an': 'в год',
+    'Économisez 50%': 'Экономия 50%',
+    'À vie': 'Навсегда',
+    'paiement unique': 'разовый платеж',
+    'Accès illimité': 'Неограниченный доступ',
+    'Adresse e-mail': 'Email адрес',
+    'Moyen de paiement': 'Способ оплаты',
+    'Carte bancaire': 'Банковская карта',
+    'Code promo': 'Промокод',
+    'CODE PROMO (optionnel)': 'ПРОМОКОД (необязательно)',
+    'Appliquer': 'Применить',
+    'Commencer — $30 / an': 'Начать — $30 / год',
+    'Paiement sécurisé • Annulation à tout moment': 'Безопасная оплата • Отмена в любой момент',
+    'Abonnement activé !': 'Подписка активирована!',
+    '⚠ Trop court (3+ caractères)': '⚠ Слишком коротко (3+ символа)',
+    '⚠ Trop long (max 20)': '⚠ Слишком длинно (макс 20)',
+    '✕ Pseudo déjà pris': '✕ Имя пользователя уже занято',
+    '✔ Disponible': '✔ Доступно',
+    'Compte créé. Vérifie ton email puis connecte-toi.': 'Аккаунт создан. Проверьте email и войдите.',
+    '✔ Sauvegardé !': '✔ Сохранено!',
+    'Erreur sauvegarde.': 'Ошибка сохранения.',
+    'Activer l\'accès gratuit': 'Активировать бесплатный доступ',
+    '✓ Code valide — Accès à vie GRATUIT !': '✓ Код принят — БЕСПЛАТНЫЙ пожизненный доступ!',
+    '✗ Code promo invalide': '✗ Неверный промокод',
+    'Compte introuvable. Veuillez vous reconnecter.': 'Аккаунт не найден. Войдите снова.',
+    'Accès à vie activé gratuitement !': 'Бесплатный пожизненный доступ активирован!',
+    'Toutes les fonctionnalités sont débloquées.': 'Все функции разблокированы.',
+    'Configuration Stripe non finalisée.\nVeuillez contacter l\'administrateur du site.': 'Конфигурация Stripe не завершена.\nСвяжитесь с администратором сайта.',
+    'Clash des Tribus': 'Столкновение Племен',
+    'JOUR 1': 'ДЕНЬ 1',
+    'JOUR 2': 'ДЕНЬ 2',
+    'JOUR 3': 'ДЕНЬ 3',
+    'JOUR 4': 'ДЕНЬ 4',
+    'JOUR 5': 'ДЕНЬ 5',
+    'Convertisseur Gemmes / Stamina / Points': 'Конвертер гемов / выносливости / очков',
+    'Objectif de points visé': 'Цель очков',
+    'Points actuels': 'Текущие очки',
+    'Points par stamina': 'Очков за выносливость',
+    'Stamina déjà disponible': 'Доступная выносливость',
+    'Gemmes déjà disponibles': 'Доступные гемы',
+    'Entre un objectif de points pour calculer': 'Введите цель очков для расчета',
+    'Tableau de référence': 'Справочная таблица',
+    'Calculateur — Accélérateurs & Construction': 'Калькулятор - ускорители и строительство',
+    'Pts / min d\'accélérateur': 'Очки / мин ускорителя',
+    'Pts / +10 puissance construction': 'Очки / +10 силы строительства',
+    'Accélérateurs disponibles (min)': 'Доступные ускорители (мин)',
+    'Puissance construction disponible': 'Доступная сила строительства',
+    'Entre un objectif pour calculer': 'Введите цель для расчета',
+    'Tableau de référence — Accélérateurs': 'Справочная таблица - ускорители',
+    'Points disponibles avec tes ressources': 'Доступные очки с вашими ресурсами',
+    'Objectif atteignable !': 'Цель достижима!',
+    'Stamina totale nécessaire': 'Всего нужно выносливости',
+    'Stamina disponible': 'Доступная выносливость',
+    'Gemmes disponibles': 'Доступные гемы',
+    'Stamina manquante': 'Недостающая выносливость',
+    'Gemmes à acheter': 'Гемов к покупке',
+    'Packs recommandés': 'Рекомендуемые наборы',
+    'Pts accélérateurs': 'Очки ускорителей',
+    'Pts construction': 'Очки строительства',
+    'Pour combler avec des accélérateurs': 'Для восполнения ускорителями',
+    'total d\'accélérateurs nécessaires': 'всего нужно ускорителей',
+    'Pour combler avec la construction': 'Для восполнения строительством',
+    'à gagner en construction': 'нужно набрать в строительстве',
+    'paliers de +10 puissance': 'шагов по +10 мощи',
+    'Calculateur — Stamina & Recherche': 'Калькулятор - выносливость и исследования',
+    'Pts / +10 puissance de recherche': 'Очки / +10 силы исследования',
+    'Puissance recherche disponible': 'Доступная сила исследования',
+    'Pts / connaissance avancée': 'Очки / продвинутые знания',
+    'Connaissances avancées disponibles': 'Доступные продвинутые знания',
+    'Entre tes ressources pour voir tes points': 'Введите ресурсы, чтобы увидеть очки',
+    'Calculateur — Souvenirs': 'Калькулятор - реликвии',
+    'Points par souvenir': 'Очков за реликвию',
+    'Souvenirs disponibles': 'Доступные реликвии',
+    'Entre tes souvenirs pour voir tes points': 'Введите реликвии, чтобы увидеть очки',
+    'Calculateur — Jour 5 (Combiné)': 'Калькулятор - День 5 (комбинированный)',
+    'Tier de troupe': 'Тир войск',
+    'Pts / troupe (tier sélectionné)': 'Очки / войско (выбранный тир)',
+    'Pts / +10 puissance de construction': 'Очки / +10 силы строительства',
+    'Compétence Hero': 'Навыки героя',
+    'Configuration des compétences': 'Настройка навыков',
+    'Héros': 'Герой',
+    'Réinitialiser': 'Сбросить',
+    'Calculateur Mementos': 'Калькулятор мeментов',
+    'Inclure déblocage héros (+10)': 'Учитывать разблокировку героя (+10)',
+    'Coût compétences': 'Стоимость навыков',
+    'Coût total affiché': 'Показанная общая стоимость',
+    'Reste à investir': 'Осталось вложить',
+    'Progression': 'Прогресс',
+    'Ajuste les niveaux de Skill 1 à Skill 4 avec les boutons +/- (minimum 1, maximum 5).': 'Изменяйте уровни Skill 1-4 кнопками +/- (минимум 1, максимум 5).',
+    'Paires de Héros': 'Пары героев',
+    'Proposer une paire': 'Предложить пару',
+    'Publié en tant que :': 'Опубликовано как:',
+    'Héros 1': 'Герой 1',
+    'Héros 2': 'Герой 2',
+    'Tous contextes': 'Все контексты',
+    'Convertisseur d\'accélérateurs → minutes': 'Конвертер ускорителей -> минуты',
+    'CONVERTISSEUR D\'ACCÉLÉRATEURS → MINUTES': 'КОНВЕРТЕР УСКОРИТЕЛЕЙ -> МИНУТЫ',
+    'Total en minutes': 'Итого в минутах',
+    'Total': 'Итого',
+    'champ rempli automatiquement ↓': 'поле заполняется автоматически ↓',
+    'rempli automatiquement ↓': 'заполняется автоматически ↓',
+    'Taux ajustables.': 'Регулируемые коэффициенты.',
+    'STAMINA': 'ВЫНОСЛИВОСТЬ',
+    'RECHERCHE': 'ИССЛЕДОВАНИЕ',
+    'RECHERCHE AVANCÉE': 'ПРОДВИНУТОЕ ИССЛЕДОВАНИЕ',
+    'SOUVENIR LÉGENDAIRE': 'ЛЕГЕНДАРНЫЙ РЕЛИКТ',
+    'SOUVENIR ÉPIQUE': 'ЭПИЧЕСКИЙ РЕЛИКТ',
+    'SOUVENIR RARE': 'РЕДКИЙ РЕЛИКТ',
+    'FORMATION DE TROUPES': 'ПОДГОТОВКА ВОЙСК',
+    'CONSTRUCTION': 'СТРОИТЕЛЬСТВО',
+    'lié au calculateur de troupes': 'связано с калькулятором войск',
+    'auto depuis calculateur': 'авто из калькулятора',
+    'T3 pts/troupe': 'T3 очк./войско',
+    'T4 pts/troupe': 'T4 очк./войско',
+    'T5 pts/troupe': 'T5 очк./войско',
+    'T6 pts/troupe': 'T6 очк./войско',
+    'T7 pts/troupe': 'T7 очк./войско',
+    'Points disponibles — Total combiné': 'Доступные очки - общий итог',
+    'Points disponibles — Total souvenirs': 'Доступные очки - итог реликвий',
+    'Objectif :': 'Цель:',
+    'pts —': 'очк. -',
+    '✔ Atteignable !': '✔ Достижимо!',
+    'il te manque': 'не хватает',
+    'Entre un objectif pour voir ce qu\'il te manque': 'Введите цель, чтобы увидеть нехватку',
+    'Entre un objectif pour voir le total': 'Введите цель, чтобы увидеть итог',
+    'Pts Stamina': 'Очки выносливости',
+    'Pts Acc. Recherche': 'Очки ускор. исследований',
+    'Pts Puissance Rech.': 'Очки силы исследования',
+    'Pts Rech. Avancée': 'Очки продв. исследования',
+    'Points manquants': 'Недостающие очки',
+    'Combler avec Stamina': 'Добрать выносливостью',
+    'gemmes à acheter': 'гемов купить',
+    'Combler avec Recherche': 'Добрать исследованием',
+    'Combler avec Rech. Avancée': 'Добрать продв. исследованием',
+    'connaissances': 'знаний',
+    'à': 'по',
+    'chacune': 'каждая',
+    'Pts Légendaire': 'Очки легендарных',
+    'Pts Épique': 'Очки эпических',
+    'Pts Rare': 'Очки редких',
+    'Pour combler le manque :': 'Чтобы закрыть нехватку:',
+    'Combo optimal': 'Оптимальная комбинация',
+    '100% Légendaires': '100% легендарные',
+    '100% Épiques': '100% эпические',
+    '100% Rares': '100% редкие',
+    'souvenir': 'реликвия',
+    'souvenirs': 'реликвии',
+    'Pts Formation': 'Очки тренировки',
+    'troupes': 'войск',
+    'Pts Accélérateurs': 'Очки ускорителей',
+    'Pts Construction': 'Очки строительства',
+    'Passif :': 'Пассивка:',
+    'Légendaire': 'Легендарный',
+    'Épique': 'Эпический',
+    'Rare': 'Редкий',
+    'Économie': 'Экономика',
+    'Méta': 'Мета',
+    'Alt :': 'Альт:',
+    'Meilleurs counters contre': 'Лучшие контры против',
+    'Score': 'Счет',
+    'Arbres :': 'Ветки:',
+    'Éviter :': 'Избегать:'
+    ,
+    'Coût pour': 'Стоимость для',
+    '1 seule troupe': '1 войска',
+    'par tier — entrez les vraies valeurs du jeu.': 'на тир - введите реальные игровые значения.',
+    'Temps (s)': 'Время (с)',
+    'PSEUDO': 'ПОЛЬЗОВАТЕЛЬ',
+    'CRÉÉ LE': 'СОЗДАН',
+    'DERNIÈRE CONNEXION': 'ПОСЛЕДНИЙ ВХОД',
+    'STATUT': 'СТАТУС',
+    'EXPIRATION': 'ОКОНЧАНИЕ',
+    'ACTIONS': 'ДЕЙСТВИЯ',
+    'stamina': 'выносливость',
+    'gemmes': 'гемы',
+    'min': 'мин',
+    '— il te manque des ressources': '- вам не хватает ресурсов',
+    'Support': 'Поддержка',
+    'Contacter le support': 'Связаться с поддержкой',
+    'Sujet (optionnel)': 'Тема (необязательно)',
+    'Message': 'Сообщение',
+    'Fermer': 'Закрыть',
+    'Envoyer': 'Отправить',
+    'Message envoyé au support.': 'Сообщение отправлено в поддержку.',
+    'Veuillez écrire un message.': 'Пожалуйста, напишите сообщение.',
+    'Boîte support admin': 'Входящие поддержки администратора',
+    'Aucun message support pour le moment.': 'Пока нет сообщений в поддержку.',
+    'De': 'От',
+    'Sujet': 'Тема',
+    'Date': 'Дата',
+    'Statut': 'Статус',
+    'Non lu': 'Не прочитано',
+    'Lu': 'Прочитано',
+    'Marquer lu': 'Отметить прочитанным',
+    'Supprimer': 'Удалить',
+    'Sans sujet': 'Без темы',
+    'Historique des messages': 'История сообщений',
+    'Aucun message envoyé pour le moment.': 'Пока нет отправленных сообщений.',
+    'Répondre': 'Ответить',
+    'Réponse admin': 'Ответ администратора',
+    'Réponse envoyée.': 'Ответ отправлен.',
+    'Écrire une réponse pour ce joueur.': 'Напишите ответ игроку.',
+    'Annuler': 'Отмена',
+    'Écris ta réponse ici...': 'Напишите ответ здесь...',
+    'Créateur': 'Создатель',
+    'Posté par': 'Опубликовал',
+    'Anonyme': 'Аноним',
+    'Compositions de la Communauté': 'Композиции сообщества',
+    'Aucune paire ne correspond aux filtres sélectionnés.': 'Нет пар, соответствующих выбранным фильтрам.',
+    'Synergie:': 'Синергия:',
+    'Inconnu': 'Неизвестно',
+    'Likes': 'Лайки',
+    'Dislikes': 'Дизлайки'
+  }
+};
+
+function switchLang(lang) {
+  if (!TRANSLATIONS[lang]) lang = 'fr';
+  currentLang = lang;
+  localStorage.setItem('fw_lang', lang);
+  document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+  const activeBtn = document.getElementById('lang-' + lang);
+  if (activeBtn) activeBtn.classList.add('active');
+  document.documentElement.setAttribute('lang', lang);
+  ensureI18nObserver();
+  updatePageTranslations();
+}
+
+function t(key) {
+  const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
+  return dict[key] || TRANSLATIONS.fr[key] || key;
+}
+
+function isNoTranslateElement(el) {
+  if (!el || typeof el.closest !== 'function') return false;
+  return !!el.closest('[data-no-translate], .no-i18n');
+}
+
+function tWithPrefix(text) {
+  if (!text) return text;
+  const match = text.match(/^([^\p{L}\p{N}]*)([\s\S]*)$/u);
+  const prefix = match ? (match[1] || '') : '';
+  const core = match ? (match[2] || '') : text;
+  const trimmedCore = core.trim();
+  if (!trimmedCore) return text;
+  const translatedCore = t(trimmedCore);
+  if (translatedCore === trimmedCore) return t(text);
+  return prefix + translatedCore;
+}
+
+let i18nPrepared = false;
+const i18nTextNodes = [];
+const i18nAttrNodes = [];
+let i18nIsApplying = false;
+let i18nObserverStarted = false;
+let i18nRefreshTimer = null;
+
+function prepareI18nNodes() {
+  if (i18nPrepared) return;
+
+  const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (!node || !node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      const parent = node.parentElement;
+      if (!parent) return NodeFilter.FILTER_REJECT;
+      if (isNoTranslateElement(parent)) return NodeFilter.FILTER_REJECT;
+      const tag = parent.tagName;
+      if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'TEXTAREA') {
+        return NodeFilter.FILTER_REJECT;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+
+  let textNode;
+  while ((textNode = textWalker.nextNode())) {
+    const raw = textNode.nodeValue || '';
+    const match = raw.match(/^(\s*)(.*?)(\s*)$/s);
+    if (!match) continue;
+    const core = (match[2] || '').trim();
+    if (!core) continue;
+    i18nTextNodes.push({ node: textNode, lead: match[1] || '', core, trail: match[3] || '' });
+  }
+
+  const attrSelector = [
+    '[placeholder]',
+    '[title]',
+    '[aria-label]',
+    'input[type="button"][value]',
+    'input[type="submit"][value]',
+    'input[type="reset"][value]'
+  ].join(',');
+
+  document.querySelectorAll(attrSelector).forEach(el => {
+    if (isNoTranslateElement(el)) return;
+    ['placeholder', 'title', 'aria-label', 'value'].forEach(attr => {
+      const val = el.getAttribute(attr);
+      if (val && val.trim()) {
+        i18nAttrNodes.push({ el, attr, source: val });
+      }
+    });
+  });
+
+  i18nPrepared = true;
+}
+
+function updatePageTranslations() {
+  i18nIsApplying = true;
+  prepareI18nNodes();
+  const dict = TRANSLATIONS[currentLang] || {};
+  const missing = new Set();
+
+  i18nTextNodes.forEach(entry => {
+    if (!entry || !entry.node || !entry.node.parentElement) return;
+    if (currentLang !== 'fr' && !dict[entry.core] && TRANSLATIONS.fr[entry.core]) {
+      missing.add(entry.core);
+    }
+    const translated = i18nRuntimeMessage(entry.core);
+    entry.node.nodeValue = entry.lead + translated + entry.trail;
+  });
+
+  i18nAttrNodes.forEach(entry => {
+    if (!entry || !entry.el || !entry.el.isConnected) return;
+    if (currentLang !== 'fr' && !dict[entry.source] && TRANSLATIONS.fr[entry.source]) {
+      missing.add(entry.source);
+    }
+    entry.el.setAttribute(entry.attr, i18nRuntimeMessage(entry.source));
+  });
+
+  window.fwMissingTranslations = Array.from(missing);
+  if (missing.size > 0 && currentLang !== 'fr') {
+    console.warn('[i18n] Missing translation keys for', currentLang, ':', missing.size);
+  }
+  i18nIsApplying = false;
+}
+
+function scheduleI18nRefresh() {
+  if (i18nRefreshTimer) clearTimeout(i18nRefreshTimer);
+  i18nRefreshTimer = setTimeout(() => {
+    if (i18nIsApplying) return;
+    i18nPrepared = false;
+    i18nTextNodes.length = 0;
+    i18nAttrNodes.length = 0;
+    updatePageTranslations();
+  }, 40);
+}
+
+function ensureI18nObserver() {
+  if (i18nObserverStarted || !document.body) return;
+  const observer = new MutationObserver((mutations) => {
+    if (i18nIsApplying) return;
+    for (const m of mutations) {
+      if (m.type === 'childList' || m.type === 'characterData' || m.type === 'attributes') {
+        scheduleI18nRefresh();
+        return;
+      }
+    }
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ['placeholder', 'title', 'aria-label', 'value']
+  });
+
+  i18nObserverStarted = true;
+}
+
+function i18nRuntimeMessage(message) {
+  if (message === null || message === undefined) return message;
+  let out = String(message);
+  if (currentLang === 'fr') return out;
+
+  const dict = TRANSLATIONS[currentLang] || {};
+  const frKeys = Object.keys(TRANSLATIONS.fr || {}).sort((a, b) => b.length - a.length);
+
+  frKeys.forEach(key => {
+    const translated = dict[key];
+    if (!translated || translated === key) return;
+    if (out.includes(key)) out = out.split(key).join(translated);
+  });
+
+  return out;
+}
+
+const nativeAlert = window.alert.bind(window);
+const nativeConfirm = window.confirm.bind(window);
+
+window.alert = function(message) {
+  nativeAlert(i18nRuntimeMessage(message));
+};
+
+window.confirm = function(message) {
+  return nativeConfirm(i18nRuntimeMessage(message));
+};
 
 // ── Identifiants admin (hardcodés – ne pas stocker dans fw_users) ──
 const ADMIN_USERNAME = 'ADMIN_FW';
@@ -1745,11 +2886,11 @@ function checkUsernameAvail() {
   const val = document.getElementById('registerUsername').value.trim();
   const hint = document.getElementById('usernameHint');
   if (!val) { hint.textContent = ''; return; }
-  if (val.length < 3) { hint.textContent = '⚠ Trop court (3+ caractères)'; hint.style.color = '#e08080'; return; }
-  if (val.length > 20) { hint.textContent = '⚠ Trop long (max 20)'; hint.style.color = '#e08080'; return; }
+  if (val.length < 3) { hint.textContent = t('⚠ Trop court (3+ caractères)'); hint.style.color = '#e08080'; return; }
+  if (val.length > 20) { hint.textContent = t('⚠ Trop long (max 20)'); hint.style.color = '#e08080'; return; }
   const users = getUsersStore();
-  if (users[val]) { hint.textContent = '✕ Pseudo déjà pris'; hint.style.color = '#e08080'; }
-  else { hint.textContent = '✔ Disponible'; hint.style.color = 'var(--teal-lt)'; }
+  if (users[val]) { hint.textContent = t('✕ Pseudo déjà pris'); hint.style.color = '#e08080'; }
+  else { hint.textContent = t('✔ Disponible'); hint.style.color = 'var(--teal-lt)'; }
 }
 
 function showMainApp() {
@@ -1761,11 +2902,14 @@ function showMainApp() {
   // Bouton Admin : visible seulement pour l'admin
   const adminBtn = document.getElementById('adminNavBtn');
   if (adminBtn) adminBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+  const supportBtn = document.getElementById('supportBtn');
+  if (supportBtn) supportBtn.style.display = isAdmin ? 'none' : 'inline-flex';
 
   if (isAdmin) {
     document.getElementById('admin').classList.add('active');
     document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
     if (adminBtn) adminBtn.classList.add('active');
+    updateAdminUnreadBadge();
     renderAdminPanel();
     return;
   }
@@ -1778,6 +2922,7 @@ function showMainApp() {
   if (typeof window.refreshSubscriptionTrigger === 'function') {
     window.refreshSubscriptionTrigger();
   }
+  updateAdminUnreadBadge();
   startCloudAutoRefresh();
   init();
 }
@@ -1854,6 +2999,7 @@ function showLoginPage() {
   document.getElementById('login').classList.add('active');
   document.getElementById('navButtons').style.display = 'none';
   document.getElementById('userInfo').style.display = 'none';
+  closeSupportModal();
   buildSavedAccounts();
 }
 
@@ -1936,7 +3082,7 @@ async function register() {
     if (!data.session) {
       users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now() };
       saveUsersStore(users);
-      document.getElementById('registerSuccess').textContent = 'Compte créé. Vérifie ton email puis connecte-toi.';
+      document.getElementById('registerSuccess').textContent = t('Compte créé. Vérifie ton email puis connecte-toi.');
       document.getElementById('registerSuccess').style.display = 'block';
       document.getElementById('loginUsername').value = username;
       switchAuthTab('login');
@@ -2003,7 +3149,7 @@ async function checkAuth() {
 async function renderAdminPanel() {
   await syncUsersFromCloud();
   const users = getUsersStore();
-  const keys = Object.keys(users);
+  const keys = Object.keys(users).filter(k => k !== ADMIN_USERNAME);
   const now = Date.now();
 
   // Stats
@@ -2026,6 +3172,7 @@ async function renderAdminPanel() {
   }
 
   renderAdminTable();
+  renderAdminSupportInbox();
 }
 
 function renderAdminTable() {
@@ -2035,6 +3182,7 @@ function renderAdminTable() {
   const filter = document.getElementById('adminFilter')?.value || 'all';
 
   let keys = Object.keys(users).filter(k => {
+    if (k === ADMIN_USERNAME) return false;
     if (search && !k.toLowerCase().includes(search)) return false;
     const p = users[k].premium;
     if (filter === 'premium') return p && p.active;
@@ -2103,17 +3251,258 @@ function renderAdminTable() {
   wrap.innerHTML = `<table style="width:100%;border-collapse:collapse;">
     <thead>
       <tr style="border-bottom:1px solid rgba(200,148,42,.3);">
-        <th style="padding:8px 12px;text-align:left;font-size:.72rem;letter-spacing:.1em;color:var(--gold-dim);font-weight:600;">PSEUDO</th>
-        <th style="padding:8px 12px;text-align:left;font-size:.72rem;letter-spacing:.1em;color:var(--gold-dim);font-weight:600;">CRÉÉ LE</th>
-        <th style="padding:8px 12px;text-align:left;font-size:.72rem;letter-spacing:.1em;color:var(--gold-dim);font-weight:600;">DERNIÈRE CONNEXION</th>
-        <th style="padding:8px 12px;text-align:left;font-size:.72rem;letter-spacing:.1em;color:var(--gold-dim);font-weight:600;">STATUT</th>
-        <th style="padding:8px 12px;text-align:left;font-size:.72rem;letter-spacing:.1em;color:var(--gold-dim);font-weight:600;">EXPIRATION</th>
-        <th style="padding:8px 12px;text-align:left;font-size:.72rem;letter-spacing:.1em;color:var(--gold-dim);font-weight:600;">ACTIONS</th>
+        <th style="padding:8px 12px;text-align:left;font-size:.72rem;letter-spacing:.1em;color:var(--gold-dim);font-weight:600;">${t('PSEUDO')}</th>
+        <th style="padding:8px 12px;text-align:left;font-size:.72rem;letter-spacing:.1em;color:var(--gold-dim);font-weight:600;">${t('CRÉÉ LE')}</th>
+        <th style="padding:8px 12px;text-align:left;font-size:.72rem;letter-spacing:.1em;color:var(--gold-dim);font-weight:600;">${t('DERNIÈRE CONNEXION')}</th>
+        <th style="padding:8px 12px;text-align:left;font-size:.72rem;letter-spacing:.1em;color:var(--gold-dim);font-weight:600;">${t('STATUT')}</th>
+        <th style="padding:8px 12px;text-align:left;font-size:.72rem;letter-spacing:.1em;color:var(--gold-dim);font-weight:600;">${t('EXPIRATION')}</th>
+        <th style="padding:8px 12px;text-align:left;font-size:.72rem;letter-spacing:.1em;color:var(--gold-dim);font-weight:600;">${t('ACTIONS')}</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
+
+function ensureAdminSupportInbox(users) {
+  if (!users[ADMIN_USERNAME]) {
+    users[ADMIN_USERNAME] = {
+      email: '',
+      password: '',
+      created: Date.now(),
+      lastLogin: Date.now(),
+      supportInbox: []
+    };
+  }
+  if (!Array.isArray(users[ADMIN_USERNAME].supportInbox)) {
+    users[ADMIN_USERNAME].supportInbox = [];
+  }
+  return users[ADMIN_USERNAME].supportInbox;
+}
+
+function getAdminSupportMessages(users) {
+  const map = users || getUsersStore();
+  return ensureAdminSupportInbox(map);
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function updateAdminUnreadBadge() {
+  const badge = document.getElementById('adminUnreadBadge');
+  if (!badge) return;
+  const users = getUsersStore();
+  const unread = getAdminSupportMessages(users).filter(m => !m.read).length;
+  badge.textContent = unread > 99 ? '99+' : String(unread);
+  badge.style.display = unread > 0 ? 'inline-block' : 'none';
+}
+
+function openSupportModal() {
+  if (!currentUser || isAdmin) return;
+  document.getElementById('supportModalTitle').textContent = `💬 ${t('Contacter le support')}`;
+  document.getElementById('supportSubjectLabel').textContent = t('Sujet (optionnel)');
+  document.getElementById('supportMessageLabel').textContent = t('Message');
+  document.getElementById('supportCloseBtn').textContent = t('Fermer');
+  document.getElementById('supportSendBtn').textContent = t('Envoyer');
+  document.getElementById('supportHistoryTitle').textContent = t('Historique des messages');
+  document.getElementById('supportSubject').placeholder = t('Sujet (optionnel)');
+  document.getElementById('supportMessage').placeholder = t('Message');
+  renderSupportHistory();
+  document.getElementById('supportModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('supportMessage').focus(), 30);
+}
+
+function closeSupportModal() {
+  const modal = document.getElementById('supportModal');
+  if (!modal) return;
+  modal.style.display = 'none';
+  document.getElementById('supportSubject').value = '';
+  document.getElementById('supportMessage').value = '';
+}
+
+function submitSupportMessage() {
+  if (!currentUser || isAdmin) return;
+  const subject = (document.getElementById('supportSubject').value || '').trim();
+  const message = (document.getElementById('supportMessage').value || '').trim();
+  if (!message) {
+    alert(t('Veuillez écrire un message.'));
+    return;
+  }
+  const users = getUsersStore();
+  const inbox = ensureAdminSupportInbox(users);
+  inbox.unshift({
+    id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    from: currentUser,
+    subject: subject || t('Sans sujet'),
+    message,
+    read: false,
+    createdAt: Date.now(),
+    replies: []
+  });
+  saveUsersStore(users);
+  updateAdminUnreadBadge();
+  closeSupportModal();
+  alert(t('Message envoyé au support.'));
+}
+
+function renderSupportHistory() {
+  const list = document.getElementById('supportHistoryList');
+  if (!list || !currentUser || isAdmin) return;
+  const users = getUsersStore();
+  const items = getAdminSupportMessages(users)
+    .filter(m => m.from === currentUser)
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  if (items.length === 0) {
+    list.innerHTML = `<div style="font-size:.8rem;color:var(--dim);padding:8px 2px;">${t('Aucun message envoyé pour le moment.')}</div>`;
+    return;
+  }
+
+  list.innerHTML = items.map(msg => {
+    const dateText = msg.createdAt ? new Date(msg.createdAt).toLocaleString('fr-FR') : '—';
+    const replies = Array.isArray(msg.replies) ? msg.replies : [];
+    return `<div style="border:1px solid rgba(64,192,192,.2);background:rgba(255,255,255,.02);border-radius:4px;padding:9px 10px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
+        <div style="font-size:.8rem;color:var(--gold-dim);">${t('Sujet')}: ${escapeHtml(msg.subject || t('Sans sujet'))}</div>
+        <div style="font-size:.72rem;color:var(--dim);">${dateText}</div>
+      </div>
+      <div class="no-i18n" data-no-translate style="margin-top:5px;font-size:.82rem;line-height:1.5;color:var(--white);white-space:pre-wrap;">${escapeHtml(msg.message || '')}</div>
+      ${replies.map(rep => `<div style="margin-top:7px;padding:7px 8px;border-left:2px solid rgba(200,148,42,.45);background:rgba(200,148,42,.08);border-radius:2px;">
+        <div style="font-size:.7rem;letter-spacing:.06em;color:var(--gold-dim);text-transform:uppercase;">${t('Réponse admin')}</div>
+        <div class="no-i18n" data-no-translate style="font-size:.8rem;color:var(--white);line-height:1.5;white-space:pre-wrap;">${escapeHtml(rep.message || '')}</div>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function renderAdminSupportInbox() {
+  const wrap = document.getElementById('adminSupportWrap');
+  if (!wrap) return;
+  const users = getUsersStore();
+  const inbox = getAdminSupportMessages(users)
+    .slice()
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  if (inbox.length === 0) {
+    wrap.innerHTML = `<p style="margin:0;color:var(--dim);font-size:.84rem;">${t('Aucun message support pour le moment.')}</p>`;
+    return;
+  }
+
+  wrap.innerHTML = inbox.map(msg => {
+    const status = msg.read ? t('Lu') : t('Non lu');
+    const statusColor = msg.read ? 'var(--dim)' : '#8de2e2';
+    const dateText = msg.createdAt ? new Date(msg.createdAt).toLocaleString('fr-FR') : '—';
+    return `<div style="border:1px solid rgba(64,192,192,.22);background:rgba(255,255,255,.02);border-radius:4px;padding:12px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div style="font-size:.8rem;color:var(--dim);">${t('De')}: <strong class="no-i18n" data-no-translate style="color:var(--white);">${escapeHtml(msg.from || '—')}</strong></div>
+        <div style="font-size:.75rem;color:var(--dim);">${t('Date')}: ${dateText}</div>
+      </div>
+      <div style="margin-top:6px;font-size:.82rem;color:var(--gold-dim);">${t('Sujet')}: <span class="no-i18n" data-no-translate>${escapeHtml(msg.subject || t('Sans sujet'))}</span></div>
+      <div class="no-i18n" data-no-translate style="margin-top:7px;font-size:.84rem;line-height:1.55;color:var(--white);white-space:pre-wrap;">${escapeHtml(msg.message || '')}</div>
+      ${(Array.isArray(msg.replies) ? msg.replies : []).map(rep => `<div style="margin-top:8px;padding:8px 9px;border-left:2px solid rgba(200,148,42,.45);background:rgba(200,148,42,.08);border-radius:2px;">
+        <div style="font-size:.7rem;letter-spacing:.06em;color:var(--gold-dim);text-transform:uppercase;">${t('Réponse admin')}</div>
+        <div class="no-i18n" data-no-translate style="font-size:.82rem;color:var(--white);line-height:1.5;white-space:pre-wrap;">${escapeHtml(rep.message || '')}</div>
+      </div>`).join('')}
+      ${adminReplyTargetId === msg.id ? `<div style="margin-top:10px;border:1px solid rgba(200,148,42,.34);background:rgba(200,148,42,.07);border-radius:4px;padding:9px;">
+        <div style="font-size:.72rem;color:var(--gold-dim);letter-spacing:.07em;text-transform:uppercase;margin-bottom:6px;">${t('Réponse admin')}</div>
+        <textarea id="adminReplyInput" rows="3" onkeydown="adminSupportReplyKeydown(event, '${msg.id}')" placeholder="${t('Écris ta réponse ici...')}" style="width:100%;box-sizing:border-box;padding:8px 9px;background:rgba(255,255,255,.06);border:1px solid rgba(200,148,42,.35);border-radius:3px;color:var(--white);font-size:.82rem;resize:vertical;"></textarea>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">
+          <button onclick="adminSupportCancelReply()" style="padding:5px 9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:3px;color:var(--dim);font-size:.72rem;cursor:pointer;">${t('Annuler')}</button>
+          <button onclick="adminSupportSendReply('${msg.id}')" style="padding:5px 9px;background:rgba(200,148,42,.16);border:1px solid rgba(200,148,42,.5);border-radius:3px;color:var(--gold);font-size:.72rem;cursor:pointer;">${t('Envoyer')}</button>
+        </div>
+      </div>` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
+        <div style="font-size:.74rem;color:${statusColor};">${t('Statut')}: ${status}</div>
+        <div style="display:flex;gap:8px;">
+          ${msg.read ? '' : `<button onclick="adminSupportMarkRead('${msg.id}')" style="padding:5px 9px;background:rgba(64,192,192,.14);border:1px solid rgba(64,192,192,.4);border-radius:3px;color:#8de2e2;font-size:.72rem;cursor:pointer;">${t('Marquer lu')}</button>`}
+          <button onclick="adminSupportReply('${msg.id}')" style="padding:5px 9px;background:rgba(200,148,42,.14);border:1px solid rgba(200,148,42,.45);border-radius:3px;color:var(--gold);font-size:.72rem;cursor:pointer;">${t('Répondre')}</button>
+          <button onclick="adminSupportDelete('${msg.id}')" style="padding:5px 9px;background:rgba(160,48,48,.14);border:1px solid rgba(160,48,48,.4);border-radius:3px;color:#e08080;font-size:.72rem;cursor:pointer;">${t('Supprimer')}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateAdminUnreadBadge();
+
+  if (adminReplyTargetId) {
+    setTimeout(() => {
+      const input = document.getElementById('adminReplyInput');
+      if (input) input.focus();
+    }, 0);
+  }
+}
+
+window.adminSupportMarkRead = function(messageId) {
+  const users = getUsersStore();
+  const inbox = ensureAdminSupportInbox(users);
+  const item = inbox.find(m => m.id === messageId);
+  if (!item) return;
+  item.read = true;
+  saveUsersStore(users);
+  renderAdminSupportInbox();
+  updateAdminUnreadBadge();
+};
+
+window.adminSupportReply = function(messageId) {
+  adminReplyTargetId = adminReplyTargetId === messageId ? null : messageId;
+  renderAdminSupportInbox();
+};
+
+window.adminSupportCancelReply = function() {
+  adminReplyTargetId = null;
+  renderAdminSupportInbox();
+};
+
+window.adminSupportSendReply = function(messageId) {
+  const input = document.getElementById('adminReplyInput');
+  const reply = String(input?.value || '').trim();
+  if (!reply) {
+    alert(t('Écrire une réponse pour ce joueur.'));
+    return;
+  }
+
+  const users = getUsersStore();
+  const inbox = ensureAdminSupportInbox(users);
+  const item = inbox.find(m => m.id === messageId);
+  if (!item) return;
+
+  if (!Array.isArray(item.replies)) item.replies = [];
+  item.replies.push({
+    from: ADMIN_USERNAME,
+    message: reply,
+    createdAt: Date.now()
+  });
+  item.read = true;
+  adminReplyTargetId = null;
+  saveUsersStore(users);
+  renderAdminSupportInbox();
+  updateAdminUnreadBadge();
+  alert(t('Réponse envoyée.'));
+};
+
+window.adminSupportReplyKeydown = function(event, messageId) {
+  if (!event) return;
+  if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
+  event.preventDefault();
+  window.adminSupportSendReply(messageId);
+};
+
+window.adminSupportDelete = function(messageId) {
+  if (!confirm(`${t('Supprimer')} ?`)) return;
+  const users = getUsersStore();
+  const inbox = ensureAdminSupportInbox(users);
+  const idx = inbox.findIndex(m => m.id === messageId);
+  if (idx === -1) return;
+  inbox.splice(idx, 1);
+  saveUsersStore(users);
+  renderAdminSupportInbox();
+  updateAdminUnreadBadge();
+};
 
 window.adminGrantPremium = function(username) {
   const users = getUsersStore();
@@ -2282,7 +3671,7 @@ function calcGem(){
   const ptsFromGems = Math.floor((gemOwn/0.5)*pps*mult); // gems -> stam -> pts
 
   if(goal<=0){
-    document.getElementById('gemResult').innerHTML='💎 Entre un objectif de points pour calculer';
+    document.getElementById('gemResult').innerHTML='💎 ' + t('Entre un objectif de points pour calculer');
     buildGemRef(pps,mult);
     return;
   }
@@ -2303,23 +3692,23 @@ function calcGem(){
 
   document.getElementById('gemResult').innerHTML=`
     <div class="pts-box">
-      <div class="pts-lbl">Points disponibles avec tes ressources</div>
+      <div class="pts-lbl">${t('Points disponibles avec tes ressources')}</div>
       <div class="pts-val" style="color:${ptsAvail>=goal?'var(--teal-lt)':'#e08080'}">${fmt(ptsAvail)}</div>
-      <div class="pts-sub">Objectif : ${fmt(goal)} pts ${ptsAvail>=goal?'✔ Objectif atteignable !':'— il te manque des ressources'}</div>
+      <div class="pts-sub">${t('Objectif :')} ${fmt(goal)} pts ${ptsAvail>=goal?t('✔ Objectif atteignable !'):t('— il te manque des ressources')}</div>
     </div>
     <div class="pb-row" style="margin-top:12px;">
-      <div class="pb-card"><span class="pb-icon">⚡</span><div><div class="pb-lbl">Stamina totale nécessaire</div><div class="pb-val">${fmt(totalStamNeeded)}</div></div></div>
-      <div class="pb-card"><span class="pb-icon">⚡</span><div><div class="pb-lbl">Stamina disponible</div><div class="pb-val">${fmt(stamOwn)}</div></div></div>
-      <div class="pb-card"><span class="pb-icon">💎</span><div><div class="pb-lbl">Gemmes disponibles</div><div class="pb-val">${fmt(gemOwn)}</div></div></div>
-      <div class="pb-card"><span class="pb-icon">➕</span><div><div class="pb-lbl">Stamina manquante</div><div class="pb-val" style="color:${stamMissing>0?'#e08080':'var(--teal-lt)'}">${stamMissing>0?fmt(stamMissing):'✔'}</div></div></div>
-      <div class="pb-card"><span class="pb-icon">💎</span><div><div class="pb-lbl">Gemmes à acheter</div><div class="pb-val" style="color:${gemsMissing>0?'#e08080':'var(--teal-lt)'}">${gemsMissing>0?fmt(gemsMissing):'✔'}</div></div></div>
+      <div class="pb-card"><span class="pb-icon">⚡</span><div><div class="pb-lbl">${t('Stamina totale nécessaire')}</div><div class="pb-val">${fmt(totalStamNeeded)}</div></div></div>
+      <div class="pb-card"><span class="pb-icon">⚡</span><div><div class="pb-lbl">${t('Stamina disponible')}</div><div class="pb-val">${fmt(stamOwn)}</div></div></div>
+      <div class="pb-card"><span class="pb-icon">💎</span><div><div class="pb-lbl">${t('Gemmes disponibles')}</div><div class="pb-val">${fmt(gemOwn)}</div></div></div>
+      <div class="pb-card"><span class="pb-icon">➕</span><div><div class="pb-lbl">${t('Stamina manquante')}</div><div class="pb-val" style="color:${stamMissing>0?'#e08080':'var(--teal-lt)'}">${stamMissing>0?fmt(stamMissing):'✔'}</div></div></div>
+      <div class="pb-card"><span class="pb-icon">💎</span><div><div class="pb-lbl">${t('Gemmes à acheter')}</div><div class="pb-val" style="color:${gemsMissing>0?'#e08080':'var(--teal-lt)'}">${gemsMissing>0?fmt(gemsMissing):'✔'}</div></div></div>
     </div>
     ${gemsMissing>0?`
-    <div style="margin-top:14px;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-bottom:8px;">Packs recommandés</div>
+    <div style="margin-top:14px;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-bottom:8px;">${t('Packs recommandés')}</div>
     <div class="pb-row">
       ${packBreak.filter(p=>p.n>0).map(p=>`
       <div class="pb-card"><span class="pb-icon">💎</span><div>
-        <div class="pb-lbl">${p.stam} stamina (${p.gem} gemmes)</div>
+        <div class="pb-lbl">${p.stam} ${t('stamina')} (${p.gem} ${t('gemmes')})</div>
         <div class="pb-val">× ${p.n}</div>
       </div></div>`).join('')}
     </div>`:''}`;
@@ -2332,8 +3721,8 @@ function buildGemRef(pps,mult){
   const ref = [{stam:50,gem:25},{stam:100,gem:50},{stam:500,gem:250},{stam:1000,gem:500}];
   document.getElementById('gemRefTable').innerHTML = ref.map(r=>`
     <div class="pb-card" style="flex-direction:column;align-items:flex-start;gap:4px;">
-      <div style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--gold);">💎 ${r.gem} gemmes</div>
-      <div style="font-size:.85rem;color:var(--text);">⚡ ${r.stam} stamina</div>
+      <div style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--gold);">💎 ${r.gem} ${t('gemmes')}</div>
+      <div style="font-size:.85rem;color:var(--text);">⚡ ${r.stam} ${t('stamina')}</div>
       <div style="font-size:.85rem;color:#e08080;">🎯 ${fmt(Math.floor(r.stam*ppsV*mV))} pts</div>
     </div>`).join('');
 }
@@ -2388,7 +3777,7 @@ function loadGem(){
 
 function showSaveMsg(id){
   const el = document.getElementById(id);
-  el.textContent = '✔ Sauvegardé !';
+  el.textContent = t('✔ Sauvegardé !');
   el.style.opacity = '1';
   setTimeout(()=>{ el.style.opacity='0'; }, 2500);
 }
@@ -2453,16 +3842,16 @@ function calcCon2(){
   document.getElementById('con2RefTable').innerHTML = accTypes.map(a=>`
     <div class="pb-card" style="flex-direction:column;align-items:flex-start;gap:4px;">
       <div style="font-family:'Cinzel',serif;font-size:.7rem;color:var(--gold);">⏱ ${a.label}</div>
-      <div style="font-size:.85rem;color:var(--text);">${a.min} min</div>
+      <div style="font-size:.85rem;color:var(--text);">${a.min} ${t('min')}</div>
       <div style="font-size:.85rem;color:#e08080;">🎯 ${fmt(Math.floor(a.min * accPts * mult))} pts</div>
     </div>`).join('');
 
   if(goal <= 0){
     document.getElementById('con2Result').innerHTML=`
       <div class="pts-box">
-        <div class="pts-lbl">Points disponibles avec tes ressources</div>
+        <div class="pts-lbl">${t('Points disponibles avec tes ressources')}</div>
         <div class="pts-val" style="color:#e08080">${fmt(totalPtsAvail)}</div>
-        <div class="pts-sub">⏱ ${fmt(ptsFromAcc)} pts accélérateurs + 🏗️ ${fmt(ptsFromBld)} pts construction</div>
+        <div class="pts-sub">⏱ ${fmt(ptsFromAcc)} ${t('Pts accélérateurs')} + 🏗️ ${fmt(ptsFromBld)} ${t('Pts construction')}</div>
       </div>`;
     return;
   }
@@ -2487,9 +3876,9 @@ function calcCon2(){
 
   document.getElementById('con2Result').innerHTML=`
     <div class="pts-box">
-      <div class="pts-lbl">Points disponibles avec tes ressources</div>
+      <div class="pts-lbl">${t('Points disponibles avec tes ressources')}</div>
       <div class="pts-val" style="color:${totalPtsAvail>=goal?'var(--teal-lt)':'#e08080'}">${fmt(totalPtsAvail)}</div>
-      <div class="pts-sub">Objectif : ${fmt(goal)} pts ${totalPtsAvail>=goal?'✔ Atteignable !':'— il te manque des ressources'}</div>
+      <div class="pts-sub">${t('Objectif :')} ${fmt(goal)} pts ${totalPtsAvail>=goal?t('✔ Atteignable !'):t('— il te manque des ressources')}</div>
     </div>
     <div class="pb-row" style="margin-top:12px;">
       <div class="pb-card"><span class="pb-icon">⏱</span><div><div class="pb-lbl">Pts accélérateurs</div><div class="pb-val">${fmt(ptsFromAcc)}</div></div></div>
@@ -2498,18 +3887,18 @@ function calcCon2(){
     </div>
     <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
       <div class="pts-box" style="padding:14px;">
-        <div class="pts-lbl" style="margin-bottom:8px;">Pour combler avec des accélérateurs</div>
+        <div class="pts-lbl" style="margin-bottom:8px;">${t('Pour combler avec des accélérateurs')}</div>
         <div style="font-size:1.4rem;font-weight:700;color:#e08080;">${fmt(accMissing)} min</div>
-        <div class="pts-sub">total d'accélérateurs nécessaires</div>
+        <div class="pts-sub">${t("total d'accélérateurs nécessaires")}</div>
         ${ptsMissing>0?`<div style="margin-top:10px;text-align:left;">
           ${packBreak.filter(p=>p.n>0).map(p=>`<div style="font-size:.88rem;padding:2px 0;">⏱ ${p.label} × <strong style="color:var(--white)">${p.n}</strong></div>`).join('')}
         </div>`:''}
       </div>
       <div class="pts-box" style="padding:14px;">
-        <div class="pts-lbl" style="margin-bottom:8px;">Pour combler avec la construction</div>
+        <div class="pts-lbl" style="margin-bottom:8px;">${t('Pour combler avec la construction')}</div>
         <div style="font-size:1.4rem;font-weight:700;color:#e08080;">+${fmt(bldMissing)} puissance</div>
-        <div class="pts-sub">à gagner en construction</div>
-        <div style="margin-top:8px;font-size:.85rem;color:var(--dim);">≈ ${fmt(Math.ceil(bldMissing/10))} paliers de +10 puissance</div>
+        <div class="pts-sub">${t('à gagner en construction')}</div>
+        <div style="margin-top:8px;font-size:.85rem;color:var(--dim);">≈ ${fmt(Math.ceil(bldMissing/10))} ${t('paliers de +10 puissance')}</div>
       </div>
     </div>`;
 }
@@ -2796,7 +4185,7 @@ function calcDay5(){
       <div class="pts-sub">${goal>0?`Objectif : ${fmt(goal)} pts — ${total>=goal?'✔ Atteignable !':'il te manque '+fmt(missing)+' pts'}`:'Entre un objectif pour voir le total'}</div>
     </div>
     <div class="pb-row" style="margin-top:12px;">
-      <div class="pb-card"><span class="pb-icon">⚔️</span><div><div class="pb-lbl">Pts Formation T${d5SelTier} (${fmt(trnQty)} troupes)</div><div class="pb-val">${fmt(ptsTrn)}</div></div></div>
+      <div class="pb-card"><span class="pb-icon">⚔️</span><div><div class="pb-lbl">${t('Pts Formation')} T${d5SelTier} (${fmt(trnQty)} ${t('troupes')})</div><div class="pb-val">${fmt(ptsTrn)}</div></div></div>
       <div class="pb-card"><span class="pb-icon">⏱</span><div><div class="pb-lbl">Pts Accélérateurs</div><div class="pb-val">${fmt(ptsAcc)}</div></div></div>
       <div class="pb-card"><span class="pb-icon">🏗️</span><div><div class="pb-lbl">Pts Construction</div><div class="pb-val">${fmt(ptsBld)}</div></div></div>
       <div class="pb-card"><span class="pb-icon">⚡</span><div><div class="pb-lbl">Pts Stamina</div><div class="pb-val">${fmt(ptsStam)}</div></div></div>
@@ -4007,16 +5396,16 @@ function calculate(){
   const ptsBase=Math.floor(sec/60*ppm);
   document.getElementById('eventResult').innerHTML=`
     <div class="pts-box">
-      <div class="pts-lbl">Points d'événement gagnés</div>
+      <div class="pts-lbl">${t("Points d'événement gagnés")}</div>
       <div class="pts-val">${fmt(pts)}</div>
       <div class="pts-sub">${(sec/60).toFixed(1)} min × ${ppm} pts/min ${buff>0?`× buff +${buff}%`:''}</div>
     </div>
     <div class="pb-row">
       <div class="pb-card"><span class="pb-icon">⏱</span><div><div class="pb-lbl">Temps total</div><div class="pb-val">${fmtTime(sec)}</div></div></div>
-      <div class="pb-card"><span class="pb-icon">🏰</span><div><div class="pb-lbl">Casernes</div><div class="pb-val">${bar}</div></div></div>
-      <div class="pb-card"><span class="pb-icon">⌛</span><div><div class="pb-lbl">Durée réelle</div><div class="pb-val">${fmtTime(Math.ceil(sec/bar))}</div></div></div>
-      <div class="pb-card"><span class="pb-icon">🎯</span><div><div class="pb-lbl">Pts / troupe</div><div class="pb-val">${((row.time/60)*ppm*buffMult).toFixed(1)}</div></div></div>
-      ${buff>0?`<div class="pb-card"><span class="pb-icon">⚡</span><div><div class="pb-lbl">Sans buff</div><div class="pb-val">${fmt(ptsBase)}</div></div></div>`:''}
+      <div class="pb-card"><span class="pb-icon">🏰</span><div><div class="pb-lbl">${t('Casernes')}</div><div class="pb-val">${bar}</div></div></div>
+      <div class="pb-card"><span class="pb-icon">⌛</span><div><div class="pb-lbl">${t('Durée réelle')}</div><div class="pb-val">${fmtTime(Math.ceil(sec/bar))}</div></div></div>
+      <div class="pb-card"><span class="pb-icon">🎯</span><div><div class="pb-lbl">${t('Pts / troupe')}</div><div class="pb-val">${((row.time/60)*ppm*buffMult).toFixed(1)}</div></div></div>
+      ${buff>0?`<div class="pb-card"><span class="pb-icon">⚡</span><div><div class="pb-lbl">${t('Sans buff')}</div><div class="pb-val">${fmt(ptsBase)}</div></div></div>`:''}
     </div>`;
 
   // ── Relier au calculateur Jour 5 ──
@@ -4061,8 +5450,8 @@ function buildDataEditor(){
     const div=document.createElement('div');
     div.className='tab-pane'+(idx===0?' active':'');
     div.id='tp-'+type;
-    div.innerHTML=`<div class="info-note">🪖 Coût pour <strong>1 seule troupe</strong> par tier — entrez les vraies valeurs du jeu.</div>
-      <table><thead><tr><th>Tier</th><th>🌾 Nourriture</th><th>🪵 Bois</th><th>🪨 Pierre</th><th>🔩 Fer</th><th>⏱ Temps (s)</th></tr></thead><tbody>
+    div.innerHTML=`<div class="info-note">🪖 ${t('Coût pour')} <strong>${t('1 seule troupe')}</strong> ${t('par tier — entrez les vraies valeurs du jeu.')}</div>
+      <table><thead><tr><th>${t('Tier')}</th><th>🌾 ${t('Nourriture')}</th><th>🪵 ${t('Bois')}</th><th>🪨 ${t('Pierre')}</th><th>🔩 ${t('Fer')}</th><th>⏱ ${t('Temps (s)')}</th></tr></thead><tbody>
       ${DATA[type].map(row=>`<tr><td><span class="tier-badge">T${row.tier}</span></td>
         <td><input type="number" value="${row.food}"  onchange="upd('${type}',${row.tier},'food',this.value)"></td>
         <td><input type="number" value="${row.wood}"  onchange="upd('${type}',${row.tier},'wood',this.value)"></td>
@@ -4082,7 +5471,7 @@ function saveData(){
   try{
     localStorage.setItem(`fw_data_${currentUser}`,JSON.stringify(DATA));
     const s=document.getElementById('saveStatus');
-    s.textContent='✔ Sauvegardé !'; s.style.opacity='1';
+    s.textContent=t('✔ Sauvegardé !'); s.style.opacity='1';
     setTimeout(()=>s.style.opacity='0',2500);
   }catch(e){ alert('Erreur sauvegarde.'); }
 }
@@ -4156,23 +5545,23 @@ function renderSynergyPairs(){
         <div class="panel-hd"><h3>${medal} ${p.name}</h3></div>
         <div class="panel-body">
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-            <span style="font-size:1.4rem;">${h1?.icon || '?'} ${h1?.name || 'Inconnu'}</span>
+            <span style="font-size:1.4rem;">${h1?.icon || '?'} ${h1?.name || t('Inconnu')}</span>
             <span style="color:var(--gold);font-size:1.2rem;">+</span>
-            <span style="font-size:1.4rem;">${h2?.icon || '?'} ${h2?.name || 'Inconnu'}</span>
+            <span style="font-size:1.4rem;">${h2?.icon || '?'} ${h2?.name || t('Inconnu')}</span>
           </div>
           <div style="background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:4px;padding:12px;margin-bottom:12px;">
-            <div style="font-size:0.9rem;margin-bottom:8px;"><strong>Synergie:</strong> ${p.synergy}</div>
+            <div style="font-size:0.9rem;margin-bottom:8px;"><strong>${t('Synergie:')}</strong> ${p.synergy}</div>
             <div style="font-size:0.85rem;color:var(--text-dim);line-height:1.4;">${p.desc}</div>
           </div>
           <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
-            <span style="font-size:0.8rem;color:#7ddc8a;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.35);padding:2px 8px;border-radius:999px;">👍 Likes: ${p.likes || 0}</span>
-            <span style="font-size:0.8rem;color:#ff8b8b;background:rgba(244,67,54,.12);border:1px solid rgba(244,67,54,.35);padding:2px 8px;border-radius:999px;">👎 Dislikes: ${p.dislikes || 0}</span>
+            <span style="font-size:0.8rem;color:#7ddc8a;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.35);padding:2px 8px;border-radius:999px;">👍 ${t('Likes')}: ${p.likes || 0}</span>
+            <span style="font-size:0.8rem;color:#ff8b8b;background:rgba(244,67,54,.12);border:1px solid rgba(244,67,54,.35);padding:2px 8px;border-radius:999px;">👎 ${t('Dislikes')}: ${p.dislikes || 0}</span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <div style="display:flex;gap:8px;">
               <button onclick="likePair('${pairId}')" style="background:#4CAF50;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;${likeActive}">👍 ${p.likes || 0}</button>
               <button onclick="dislikePair('${pairId}')" style="background:#f44336;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;${dislikeActive}">👎 ${p.dislikes || 0}</button>
-              ${isAdmin ? `<button onclick="deleteSynergyPair('${p.h1}', '${p.h2}')" style="background:#ff9800;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">🗑️ Supprimer</button>` : ''}
+              ${isAdmin ? `<button onclick="deleteSynergyPair('${p.h1}', '${p.h2}')" style="background:#ff9800;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">🗑️ ${t('Supprimer')}</button>` : ''}
             </div>
             <div style="font-size:0.8rem;color:var(--dim);">Score ${(p.likes || 0) - (p.dislikes || 0)}</div>
           </div>
@@ -4189,7 +5578,7 @@ function renderSynergyPairs(){
   let communityHTML = '';
   if (filteredShared.length > 0) {
     communityHTML = `<div style="margin:28px 0 12px;padding-top:20px;border-top:1px solid rgba(200,148,42,.2);">
-      <div style="font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.12em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:14px;">🌍 Compositions de la Communauté</div>
+      <div style="font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.12em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:14px;">🌍 ${t('Compositions de la Communauté')}</div>
     </div>` + filteredShared.map(pair => {
       const h1 = HEROES.find(h => h.id === pair.hero1);
       const h2 = HEROES.find(h => h.id === pair.hero2);
@@ -4221,23 +5610,23 @@ function renderSynergyPairs(){
               <span class="shared-pair-badge badge-context">${contextLabel}</span>
             </div>
           </div>
-          <div class="shared-pair-user">Posté par <strong>${pair.user || 'Anonyme'}</strong> · ${new Date(pair.timestamp).toLocaleDateString('fr-FR')}</div>
-          ${pair.description ? `<div class="shared-pair-desc">${pair.description}</div>` : ''}
+          <div class="shared-pair-user">${t('Posté par')} <strong class="no-i18n" data-no-translate>${escapeHtml(pair.user || t('Anonyme'))}</strong> · ${new Date(pair.timestamp).toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : currentLang === 'en' ? 'en-US' : 'fr-FR')}</div>
+          ${pair.description ? `<div class="shared-pair-desc no-i18n" data-no-translate>${escapeHtml(pair.description)}</div>` : ''}
           <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
-            <span style="font-size:0.8rem;color:#7ddc8a;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.35);padding:2px 8px;border-radius:999px;">👍 Likes: ${likesCount}</span>
-            <span style="font-size:0.8rem;color:#ff8b8b;background:rgba(244,67,54,.12);border:1px solid rgba(244,67,54,.35);padding:2px 8px;border-radius:999px;">👎 Dislikes: ${dislikesCount}</span>
+            <span style="font-size:0.8rem;color:#7ddc8a;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.35);padding:2px 8px;border-radius:999px;">👍 ${t('Likes')}: ${likesCount}</span>
+            <span style="font-size:0.8rem;color:#ff8b8b;background:rgba(244,67,54,.12);border:1px solid rgba(244,67,54,.35);padding:2px 8px;border-radius:999px;">👎 ${t('Dislikes')}: ${dislikesCount}</span>
           </div>
           <div class="shared-pair-actions">
             <button onclick="voteSharedPair('${pair.id}', 'like')" style="background:#4CAF50;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;${likeActive}">👍 ${likesCount}</button>
             <button onclick="voteSharedPair('${pair.id}', 'dislike')" style="background:#f44336;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;${dislikeActive}">👎 ${dislikesCount}</button>
-            ${canDelete ? `<button class="shared-pair-delete" onclick="deleteSharedPair('${pair.id}')">🗑️ Supprimer</button>` : ''}
+            ${canDelete ? `<button class="shared-pair-delete" onclick="deleteSharedPair('${pair.id}')">🗑️ ${t('Supprimer')}</button>` : ''}
           </div>
         </div>`;
     }).join('');
   }
 
   const content = synergyHTML + communityHTML;
-  container.innerHTML = content || '<div style="text-align:center;padding:40px;color:var(--dim);">Aucune paire ne correspond aux filtres sélectionnés.</div>';
+  container.innerHTML = content || `<div style="text-align:center;padding:40px;color:var(--dim);">${t('Aucune paire ne correspond aux filtres sélectionnés.')}</div>`;
 }
 
 function getVoterKey() {
@@ -4495,9 +5884,18 @@ function deleteSynergyPair(h1, h2){
   }
 }
 
+// Initialize language on page load
+switchLang(currentLang);
+ensureI18nObserver();
 checkAuth();
 
 </script>
+
+<!-- ══ CREATOR FOOTER ══ -->
+<div id="creatorFooter">
+  <span class="creator-label">⚔️ Créateur</span>
+  <span class="creator-name no-i18n" data-no-translate>Lukass.GODSENT</span>
+</div>
 
 <!-- ===== SUBSCRIPTION SECTION ===== -->
 <style>
@@ -4855,10 +6253,10 @@ checkAuth();
    * ─────────────────────────────────────────────────────────────────── */
   var STRIPE_LINKS = {
     monthly:  'https://buy.stripe.com/5kQ3cwcZy1YQ1HN23A3F603',
-    annual:   'https://buy.stripe.com/test_3cI00jfta4Yn5k527f7EQ01',
-    lifetime: 'https://buy.stripe.com/test_4gM5kDgxecqP27T3bj7EQ00'
+    annual:   'https://buy.stripe.com/14A6oIaRq6f63PVdMi3F601',
+    lifetime: 'https://buy.stripe.com/00wfZie3CdHy5Y35fM3F602'
   };
-  var STRIPE_CANCEL_URL = 'https://billing.stripe.com/p/login/REMPLACEZ_MOI';
+  var STRIPE_CANCEL_URL = 'https://billing.stripe.com/p/login/bpc_1TKJNGJun9ILX8InaipTwuNZ';
 
   window.openStripeCancelPortal = function () {
     if (!currentUser) {
@@ -5021,7 +6419,7 @@ checkAuth();
 
   function updateSubmitBtn() {
     if (promoFree) {
-      submitBtn.textContent = 'Activer l\'accès gratuit';
+      submitBtn.textContent = t('Activer l\'accès gratuit');
       return;
     }
     var p = PLANS[selectedPlan];
@@ -5040,7 +6438,7 @@ checkAuth();
     if (FREE_LIFETIME_PROMO_CODES.indexOf(code) !== -1) {
       promoValid = true;
       promoFree  = true;
-      promoMsg.textContent = '✓ Code valide — Accès à vie GRATUIT !';
+      promoMsg.textContent = t('✓ Code valide — Accès à vie GRATUIT !');
       promoMsg.className   = 'ok';
       promoInput.style.borderColor = '#4caf50';
     } else if (code === '') {
@@ -5050,7 +6448,7 @@ checkAuth();
     } else {
       promoValid = false;
       promoFree  = false;
-      promoMsg.textContent = '✗ Code promo invalide';
+      promoMsg.textContent = t('✗ Code promo invalide');
       promoMsg.className   = 'err';
       promoInput.style.borderColor = '#e94560';
     }
@@ -5089,8 +6487,8 @@ checkAuth();
       saveUsersStore(users);
       formArea.style.display = 'none';
       doneMsg.style.display  = 'block';
-      doneText.textContent = '\uD83C\uDF89 Accès à vie activé gratuitement !';
-      doneSub.textContent  = 'Toutes les fonctionnalités sont débloquées.';
+      doneText.textContent = '🎉 ' + t('Accès à vie activé gratuitement !');
+      doneSub.textContent  = t('Toutes les fonctionnalités sont débloquées.');
       if (typeof updatePremiumBadge === 'function') updatePremiumBadge();
       refreshSubscriptionTrigger();
       return;
@@ -5166,6 +6564,12 @@ checkAuth();
   setTimeout(showReview, 6000);
   setInterval(showReview, 16000);
 })();
+</script>
+
+<script>
+if (typeof switchLang === 'function') {
+  switchLang(localStorage.getItem('fw_lang') || 'fr');
+}
 </script>
 
 </body>
