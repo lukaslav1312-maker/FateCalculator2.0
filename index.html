@@ -222,6 +222,48 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
   #creatorFooter .creator-name { font-size:.7rem; }
 }
 
+/* ── AUTH LOADING OVERLAY ── */
+#authOverlay {
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  background:#0a0b0f;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  transition:opacity .3s;
+}
+#authOverlay.hidden { opacity:0; pointer-events:none; }
+#authOverlay .ao-logo {
+  font-family:'Cinzel Decorative',serif;
+  font-size:1.8rem;
+  color:var(--gold-lt);
+  text-shadow:0 0 40px rgba(200,148,42,.5);
+  letter-spacing:.05em;
+}
+#authOverlay .ao-spinner {
+  width:34px; height:34px;
+  border:3px solid rgba(200,148,42,.18);
+  border-top-color:var(--gold);
+  border-radius:50%;
+  animation:aoSpin .7s linear infinite;
+}
+@keyframes aoSpin { to { transform:rotate(360deg); } }
+
+/* ── GEMS BUILDINGS MOBILE ── */
+@media(max-width:600px) {
+  #gemsBuildings .panel-body table { font-size:.7rem; }
+  #gemsBuildings .panel-body th,
+  #gemsBuildings .panel-body td { padding:3px 4px !important; font-size:.6rem !important; }
+  #gemsBuildings h3 { font-size:.78rem !important; }
+  #gemsBuildings > div { padding:12px 10px 50px !important; }
+  #gemsBuildings .panel-body > div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 .feature-card { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:24px; text-align:left; }
 .feature-icon { font-size:2rem; margin-bottom:12px; }
 .feature-title { font-family:'Cinzel',serif; font-size:1.1rem; color:var(--gold); margin-bottom:8px; }
@@ -526,6 +568,11 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
 </style>
 </head>
 <body>
+<!-- AUTH LOADING OVERLAY — masque le contenu jusqu'à fin de vérification auth -->
+<div id="authOverlay">
+  <div class="ao-logo">⚔️ FATE WAR</div>
+  <div class="ao-spinner"></div>
+</div>
 
 <!-- ══ MODAL PROFIL ══ -->
 <div id="profileModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;">
@@ -881,7 +928,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
 <!-- FIN PAGE SECTION CALCULATEUR -->
 
 <!-- ══ PAGE 1 : CALCULATEUR ══ -->
-<div id="page1" class="page-content active">
+<div id="page1" class="page-content">
 
 <!-- ══ CALCULATEUR ══ -->
 <div class="section-title"><h2>⚔️ Calculateur de Troupes</h2></div>
@@ -3164,6 +3211,8 @@ function showMainApp() {
     if (adminBtn) adminBtn.classList.add('active');
     updateAdminUnreadBadge();
     renderAdminPanel();
+    const _ovA = document.getElementById('authOverlay');
+    if (_ovA) { _ovA.classList.add('hidden'); setTimeout(()=>{ _ovA.style.display='none'; }, 350); }
     return;
   }
 
@@ -3178,6 +3227,8 @@ function showMainApp() {
   updateAdminUnreadBadge();
   startCloudAutoRefresh();
   init();
+  const _ov1 = document.getElementById('authOverlay');
+  if (_ov1) { _ov1.classList.add('hidden'); setTimeout(()=>{ _ov1.style.display='none'; }, 350); }
 }
 
 function showError(id, msg) {
@@ -3254,6 +3305,8 @@ function showLoginPage() {
   document.getElementById('userInfo').style.display = 'none';
   closeSupportModal();
   buildSavedAccounts();
+  const _ov2 = document.getElementById('authOverlay');
+  if (_ov2) { _ov2.classList.add('hidden'); setTimeout(()=>{ _ov2.style.display='none'; }, 350); }
 }
 
 async function login() {
@@ -3372,6 +3425,7 @@ async function checkAuth() {
     isAdmin = true;
     currentUser = ADMIN_USERNAME;
     showMainApp();
+    showLoginPage();
     return;
   }
   const client = getSupabaseClient();
