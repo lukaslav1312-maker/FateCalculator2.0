@@ -2774,6 +2774,11 @@ function getAdminPasswordHash() {
   return localStorage.getItem(ADMIN_PASSWORD_HASH_KEY) || '6g58ph';
 }
 
+/* Force la synchronisation du hash admin avec le code source */
+(function syncAdminHash() {
+  localStorage.setItem(ADMIN_PASSWORD_HASH_KEY, '6g58ph');
+})();
+
 function ensureAdminPasswordConfigured() {
   if (getAdminPasswordHash()) return true;
   const pwd = prompt('Aucun mot de passe admin configure. Definis-en un nouveau (8+ caracteres).');
