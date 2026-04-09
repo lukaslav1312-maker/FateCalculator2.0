@@ -3462,36 +3462,41 @@ async function logout() {
 }
 
 async function checkAuth() {
-  await syncUsersFromCloud();
-  if (sessionStorage.getItem('fw_admin_session') === '1') {
-    isAdmin = true;
-    currentUser = ADMIN_USERNAME;
-    showMainApp();
-    showLoginPage();
-    return;
-  }
-  const client = getSupabaseClient();
-  if (client) {
-    const { data, error } = await client.auth.getSession();
-    if (!error && data && data.session && data.session.user) {
-      const authEntry = getUserEntryByAuthIdentity(data.session.user.id, data.session.user.email);
-      if (authEntry) {
-        currentUser = authEntry.username;
-        localStorage.setItem('fw_current_user', currentUser);
-        showMainApp();
-        return;
-      }
+  try {
+    await syncUsersFromCloud();
+    if (sessionStorage.getItem('fw_admin_session') === '1') {
+      isAdmin = true;
+      currentUser = ADMIN_USERNAME;
+      showMainApp();
+      return;
     }
-    localStorage.removeItem('fw_current_user');
-    sessionStorage.removeItem('fw_current_user');
-    return;
+    const client = getSupabaseClient();
+    if (client) {
+      const { data, error } = await client.auth.getSession();
+      if (!error && data && data.session && data.session.user) {
+        const authEntry = getUserEntryByAuthIdentity(data.session.user.id, data.session.user.email);
+        if (authEntry) {
+          currentUser = authEntry.username;
+          localStorage.setItem('fw_current_user', currentUser);
+          showMainApp();
+          return;
+        }
+      }
+      localStorage.removeItem('fw_current_user');
+      sessionStorage.removeItem('fw_current_user');
+      showLoginPage();
+      return;
+    }
+    const saved = localStorage.getItem('fw_current_user') || sessionStorage.getItem('fw_current_user');
+    if (saved) {
+      const users = getUsersStore();
+      if (users[saved]) { currentUser = saved; showMainApp(); return; }
+    }
+    showLoginPage();
+  } catch (err) {
+    console.error('checkAuth failed:', err);
+    showLoginPage();
   }
-  const saved = localStorage.getItem('fw_current_user') || sessionStorage.getItem('fw_current_user');
-  if (saved) {
-    const users = getUsersStore();
-    if (users[saved]) { currentUser = saved; showMainApp(); return; }
-  }
-  showLoginPage();
 }
 
 /* ── ADMIN PANEL ── */
