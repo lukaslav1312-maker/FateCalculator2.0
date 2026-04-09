@@ -3603,7 +3603,7 @@ function switchAccount(username) {
   setTimeout(()=>document.getElementById('loginPassword').focus(), 100);
 }
 
-function changePassword() {
+async function changePassword() {
   const oldPwd = document.getElementById('pwdOld').value;
   const newPwd = document.getElementById('pwdNew').value;
   const confirm = document.getElementById('pwdConfirm').value;
@@ -3611,10 +3611,32 @@ function changePassword() {
   if (!oldPwd || !newPwd || !confirm) { showError('pwdError', '⚠ Remplissez tous les champs.'); return; }
   if (newPwd.length < 4) { showError('pwdError', '⚠ Nouveau mot de passe trop court (4+).'); return; }
   if (newPwd !== confirm) { showError('pwdError', '✕ Les mots de passe ne correspondent pas.'); return; }
+
   const users = getUsersStore();
-  if (users[currentUser].password !== hashPassword(oldPwd)) { showError('pwdError', '✕ Mot de passe actuel incorrect.'); return; }
-  users[currentUser].password = hashPassword(newPwd);
+  const u = users[currentUser];
+  if (!u) return;
+
+  const client = getSupabaseClient();
+  if (client) {
+    /* Vérification de l'ancien mot de passe via Supabase Auth (re-authentification) */
+    const email = normalizeEmail(u.email);
+    if (!email) { showError('pwdError', '✕ Email introuvable pour ce compte.'); return; }
+    const { error: signInErr } = await client.auth.signInWithPassword({ email, password: oldPwd });
+    if (signInErr) { showError('pwdError', '✕ Mot de passe actuel incorrect.'); return; }
+
+    /* Mise à jour via Supabase Auth */
+    const { error: updateErr } = await client.auth.updateUser({ password: newPwd });
+    if (updateErr) { showError('pwdError', '✕ Erreur : ' + updateErr.message); return; }
+  } else {
+    /* Mode local uniquement */
+    if (u.password !== hashPassword(oldPwd)) { showError('pwdError', '✕ Mot de passe actuel incorrect.'); return; }
+  }
+
+  /* Mise à jour du hash local (synchronisation) */
+  u.password = hashPassword(newPwd);
+  users[currentUser] = u;
   saveUsersStore(users);
+
   document.getElementById('pwdSuccess').style.display = 'block';
   document.getElementById('pwdOld').value = '';
   document.getElementById('pwdNew').value = '';
