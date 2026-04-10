@@ -654,6 +654,12 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
       <!-- Formulaire Connexion -->
       <div id="formLogin" style="padding:24px;">
         <div id="loginError" style="background:rgba(160,48,48,.15);border:1px solid rgba(160,48,48,.4);border-radius:3px;color:#e08080;font-size:.85rem;padding:10px 14px;margin-bottom:16px;display:none;text-align:center;"></div>
+        <div id="loginNotice" style="background:rgba(42,122,122,.15);border:1px solid var(--teal);border-radius:3px;color:var(--teal-lt);font-size:.85rem;padding:10px 14px;margin-bottom:16px;display:none;text-align:center;"></div>
+        <div id="resendVerificationWrap" style="display:none;margin:-4px 0 16px;text-align:center;">
+          <button id="resendVerificationBtn" onclick="resendVerificationEmail()" style="padding:8px 16px;background:rgba(42,122,122,.18);border:1px solid var(--teal);border-radius:3px;color:var(--teal-lt);font-family:'Cinzel',serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .15s;">
+            ✉️ Renvoyer l'email de confirmation
+          </button>
+        </div>
 
         <!-- Sélection de compte existant -->
         <div id="savedAccountsSection" style="margin-bottom:16px;display:none;">
@@ -3764,9 +3770,79 @@ function showError(id, msg) {
   el.textContent = msg;
   el.style.display = 'block';
 }
+
+function showNotice(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
 function hideMsg(id) {
   const el = document.getElementById(id);
   if (el) el.style.display = 'none';
+}
+
+function setResendVerificationTarget(identifier = '') {
+  const wrap = document.getElementById('resendVerificationWrap');
+  const btn = document.getElementById('resendVerificationBtn');
+  if (!wrap || !btn) return;
+  const value = String(identifier || '').trim();
+  btn.dataset.identifier = value;
+  wrap.style.display = value ? 'block' : 'none';
+}
+
+async function resendVerificationEmail() {
+  const btn = document.getElementById('resendVerificationBtn');
+  const identifier = String(btn?.dataset.identifier || document.getElementById('loginUsername')?.value || '').trim();
+  const client = getSupabaseClient();
+  if (!client) {
+    showError('loginError', '✕ Supabase n\'est pas configuré.');
+    return;
+  }
+
+  const userEntry = getUserEntryByIdentifier(identifier);
+  const email = normalizeEmail(isEmailLike(identifier) ? identifier : userEntry?.user?.email);
+  if (!email) {
+    showError('loginError', '✕ Email introuvable pour renvoyer la confirmation.');
+    return;
+  }
+
+  hideMsg('loginError');
+  hideMsg('loginNotice');
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.65';
+    btn.style.cursor = 'not-allowed';
+  }
+
+  try {
+    const { error } = await client.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: getEmailVerificationRedirectUrl()
+      }
+    });
+
+    if (error) {
+      showError('loginError', isRegisterRateLimitedError(error)
+        ? '⚠ Attends environ 60 secondes avant de renvoyer un nouvel email.'
+        : getFriendlyRegisterErrorMessage(error));
+      return;
+    }
+
+    showNotice('loginNotice', '✔ Email de confirmation renvoyé. Vérifie ta boîte mail.');
+  } catch (err) {
+    console.error('resendVerificationEmail failed:', err);
+    showError('loginError', '✕ Impossible de renvoyer l\'email de confirmation.');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    }
+  }
 }
 
 function setEmailVerificationSuccessVisible(visible) {
@@ -3856,7 +3932,8 @@ function switchAuthTab(tab) {
   tr.style.borderBottomColor = isLogin ? 'transparent' : 'var(--gold)';
   tr.style.color = isLogin ? 'var(--dim)' : 'var(--gold-lt)';
   tr.style.background = isLogin ? 'transparent' : 'rgba(200,148,42,.08)';
-  hideMsg('loginError'); hideMsg('registerError');
+  hideMsg('loginError'); hideMsg('loginNotice'); hideMsg('registerError'); hideMsg('registerSuccess');
+  setResendVerificationTarget('');
 }
 
 function buildSavedAccounts() {
@@ -4040,12 +4117,15 @@ async function login() {
         saveUsersStore(users);
         currentUser = userEntry.username;
       } else {
+        const friendlyError = getFriendlyAuthErrorMessage(error, 'login');
+        if (friendlyError.includes('Vérifie ton email')) setResendVerificationTarget(loginEmail);
         showError('loginError', getFriendlyAuthErrorMessage(error, 'login'));
         return;
       }
     } else {
       if (!hasVerifiedSupabaseSession(data)) {
         try { await client.auth.signOut(); } catch (err) { console.error('signOut after unverified login failed:', err); }
+        setResendVerificationTarget(loginEmail);
         showError('loginError', '⚠ Vérifie ton email et confirme ton compte avant de te connecter.');
         return;
       }
@@ -4126,10 +4206,10 @@ async function register() {
       if (isRegisterRateLimitedError(error)) {
         const pendingEntry = getPendingVerificationUserEntry(username) || getPendingVerificationUserEntry(email);
         if (pendingEntry) {
-          document.getElementById('registerSuccess').textContent = 'Compte déjà créé. Vérifie ton email de confirmation, puis connecte-toi.';
-          document.getElementById('registerSuccess').style.display = 'block';
-          document.getElementById('loginUsername').value = pendingEntry.username;
           switchAuthTab('login');
+          showNotice('loginNotice', 'Compte déjà créé. Vérifie ton email de confirmation, puis connecte-toi.');
+          document.getElementById('loginUsername').value = pendingEntry.username;
+          setResendVerificationTarget(pendingEntry.user.email || email);
           return;
         }
       }
@@ -4141,10 +4221,10 @@ async function register() {
     users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now(), localOnlyAuth: false, requiresEmailVerification: true };
     saveUsersStore(users);
     rememberLocalAccount(username);
-    document.getElementById('registerSuccess').textContent = t('Compte créé. Vérifie ton email puis connecte-toi.');
-    document.getElementById('registerSuccess').style.display = 'block';
     document.getElementById('loginUsername').value = username;
     switchAuthTab('login');
+    showNotice('loginNotice', t('Compte créé. Vérifie ton email puis connecte-toi.'));
+    setResendVerificationTarget(email);
     return;
   }
 
