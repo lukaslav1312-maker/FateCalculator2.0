@@ -707,7 +707,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
             onkeydown="if(event.key==='Enter')register()"
             style="width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:3px;color:var(--white);font-family:'Crimson Pro',serif;font-size:1rem;padding:10px 12px;outline:none;box-sizing:border-box;">
         </div>
-        <button onclick="register()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),rgba(64,192,192,.7));border:none;border-radius:3px;color:var(--white);font-family:'Cinzel',serif;font-size:.88rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(42,122,122,.25);">
+        <button id="registerSubmitBtn" onclick="register()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),rgba(64,192,192,.7));border:none;border-radius:3px;color:var(--white);font-family:'Cinzel',serif;font-size:.88rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(42,122,122,.25);">
           🛡️ Créer mon compte
         </button>
       </div>
@@ -3182,6 +3182,7 @@ const SUPABASE_ADMIN_USERS_FUNCTION = 'admin-users';
 let sharedPairs = [];
 let supabaseClient = null;
 let cloudRefreshHandle = null;
+let registerInProgress = false;
 
 function isSupabaseConfigured() {
   return SUPABASE_URL && SUPABASE_ANON_KEY &&
@@ -3726,6 +3727,35 @@ function getFriendlyAuthErrorMessage(error, mode = 'login') {
   return `✕ ${raw || 'Erreur de connexion.'}`;
 }
 
+function getFriendlyRegisterErrorMessage(error) {
+  const code = String(error?.code || '').toLowerCase();
+  const raw = String(error?.message || '');
+  const msg = raw.toLowerCase();
+
+  const isRateLimited =
+    code.includes('rate') ||
+    msg.includes('email rate') ||
+    msg.includes('rate limit') ||
+    msg.includes('over_email_send_rate_limit') ||
+    msg.includes('for security purposes');
+
+  if (isRateLimited) {
+    return '⚠ Trop de tentatives d\'inscription en peu de temps. Attends environ 60 secondes puis réessaie.';
+  }
+
+  const isAlreadyExists =
+    code === 'user_already_exists' ||
+    msg.includes('already registered') ||
+    msg.includes('already exists') ||
+    msg.includes('user already registered');
+
+  if (isAlreadyExists) {
+    return '✕ Cet email est déjà utilisé. Essaie de te connecter.';
+  }
+
+  return `✕ ${raw || 'Erreur d\'inscription.'}`;
+}
+
 function switchAuthTab(tab) {
   const isLogin = tab === 'login';
   document.getElementById('formLogin').style.display = isLogin ? 'block' : 'none';
@@ -3883,6 +3913,20 @@ async function login() {
 }
 
 async function register() {
+  if (registerInProgress) {
+    showError('registerError', '⚠ Inscription déjà en cours...');
+    return;
+  }
+
+  registerInProgress = true;
+  const registerBtn = document.getElementById('registerSubmitBtn');
+  if (registerBtn) {
+    registerBtn.disabled = true;
+    registerBtn.style.opacity = '0.65';
+    registerBtn.style.cursor = 'not-allowed';
+  }
+
+  try {
   const username = document.getElementById('registerUsername').value.trim();
   const email = normalizeEmail(document.getElementById('registerEmail').value.trim());
   const password = document.getElementById('registerPassword').value;
@@ -3908,7 +3952,7 @@ async function register() {
       password,
       options: { data: { username } }
     });
-    if (error) { showError('registerError', `✕ ${error.message}`); return; }
+    if (error) { showError('registerError', getFriendlyRegisterErrorMessage(error)); return; }
     authUserId = data.user?.id || '';
     if (!data.session) {
       users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now() };
@@ -3928,6 +3972,14 @@ async function register() {
   saveUsersStore(users);
   localStorage.setItem('fw_current_user', currentUser);
   showMainApp();
+  } finally {
+    registerInProgress = false;
+    if (registerBtn) {
+      registerBtn.disabled = false;
+      registerBtn.style.opacity = '1';
+      registerBtn.style.cursor = 'pointer';
+    }
+  }
 }
 
 async function logout() {
