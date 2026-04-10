@@ -3820,6 +3820,17 @@ function getFriendlyRegisterErrorMessage(error) {
   return `✕ ${raw || 'Erreur d\'inscription.'}`;
 }
 
+function getPendingVerificationUserEntry(identifier) {
+  const normalized = normalizeEmail(identifier);
+  const users = getUsersStore();
+  const match = Object.entries(users).find(([username, user]) =>
+    user &&
+    user.requiresEmailVerification === true &&
+    (username === identifier || normalizeEmail(user.email) === normalized)
+  );
+  return match ? { username: match[0], user: match[1] } : null;
+}
+
 function isRegisterRateLimitedError(error) {
   const code = String(error?.code || '').toLowerCase();
   const raw = String(error?.message || '');
@@ -4112,6 +4123,16 @@ async function register() {
       }
     });
     if (error) {
+      if (isRegisterRateLimitedError(error)) {
+        const pendingEntry = getPendingVerificationUserEntry(username) || getPendingVerificationUserEntry(email);
+        if (pendingEntry) {
+          document.getElementById('registerSuccess').textContent = 'Compte déjà créé. Vérifie ton email de confirmation, puis connecte-toi.';
+          document.getElementById('registerSuccess').style.display = 'block';
+          document.getElementById('loginUsername').value = pendingEntry.username;
+          switchAuthTab('login');
+          return;
+        }
+      }
       showError('registerError', getFriendlyRegisterErrorMessage(error));
       return;
     }
