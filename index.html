@@ -940,7 +940,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
       <div class="panel-body">
         <label>Type de troupe</label>
         <select id="troopType">
-          <option value="infantry">⚔️ Infanterie</option>
+          <option value="infantry">⚔️ Berserkers</option>
           <option value="cavalry">🐴 Cavalerie</option>
           <option value="archer">🏹 Archers</option>
           <option value="beast">🐉 Chevaucheur de bête</option>
@@ -1431,7 +1431,6 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
         <option value="">— Choisir —</option>
         <option value="cavalerie">Cavalerie</option>
         <option value="haches">Lanceurs de Haches</option>
-        <option value="infanterie">Infanterie</option>
         <option value="bete">Chevaucheur de Bête</option>
         <option value="berserker">Berserker</option>
       </select>
@@ -1824,6 +1823,8 @@ const TRANSLATIONS = {
     'SE CONNECTER': 'SE CONNECTER',
     'Créer mon compte': 'Créer mon compte',
     'Type de troupe': 'Type de troupe',
+    '⚔️ Berserkers': '⚔️ Berserkers',
+    'Berserkers': 'Berserkers',
     'Quantité': 'Quantité',
     'Bonus ressources (%)': 'Bonus ressources (%)',
     'Bonus temps (%)': 'Bonus temps (%)',
@@ -2071,6 +2072,9 @@ const TRANSLATIONS = {
     'Paires de Héros': 'Paires de Héros',
     'Paires Hero — Filtres': 'Paires Hero — Filtres',
     '🔍 Paires Hero — Filtres': '🔍 Paires Hero — Filtres',
+    '— Choisir —': '— Choisir —',
+    'Vous devez être connecté pour poster une composition.': 'Vous devez être connecté pour poster une composition.',
+    'Se connecter / Créer un compte': 'Se connecter / Créer un compte',
     'Proposer une paire': 'Proposer une paire',
     'Publié en tant que :': 'Publié en tant que :',
     'Héros 1': 'Héros 1',
@@ -2219,6 +2223,8 @@ const TRANSLATIONS = {
     'SE CONNECTER': 'LOGIN',
     'Créer mon compte': 'Create Account',
     'Type de troupe': 'Troop Type',
+    '⚔️ Berserkers': '⚔️ Berserkers',
+    'Berserkers': 'Berserkers',
     'Quantité': 'Quantity',
     'Bonus ressources (%)': 'Resource Bonus (%)',
     'Bonus temps (%)': 'Time Bonus (%)',
@@ -2402,6 +2408,9 @@ const TRANSLATIONS = {
     'Paires de Héros': 'Hero Pairs',
     'Paires Hero — Filtres': 'Hero Pairs — Filters',
     '🔍 Paires Hero — Filtres': '🔍 Hero Pairs — Filters',
+    '— Choisir —': '— Select —',
+    'Vous devez être connecté pour poster une composition.': 'You must be logged in to post a composition.',
+    'Se connecter / Créer un compte': 'Log in / Create an account',
     'Proposer une paire': 'Suggest a pair',
     'Publié en tant que :': 'Posted as:',
     'Héros 1': 'Hero 1',
@@ -2631,6 +2640,8 @@ const TRANSLATIONS = {
     'SE CONNECTER': 'ВОЙТИ',
     'Créer mon compte': 'Создать аккаунт',
     'Type de troupe': 'Тип войск',
+    '⚔️ Berserkers': '⚔️ Берсерки',
+    'Berserkers': 'Берсерки',
     'Quantité': 'Количество',
     'Bonus ressources (%)': 'Бонус ресурсов (%)',
     'Bonus temps (%)': 'Бонус времени (%)',
@@ -2813,6 +2824,9 @@ const TRANSLATIONS = {
     'Paires de Héros': 'Пары героев',
     'Paires Hero — Filtres': 'Фильтры пар героев',
     '🔍 Paires Hero — Filtres': '🔍 Фильтры пар героев',
+    '— Choisir —': '— Выбрать —',
+    'Vous devez être connecté pour poster une composition.': 'Нужно войти, чтобы публиковать композицию.',
+    'Se connecter / Créer un compte': 'Войти / Создать аккаунт',
     'Proposer une paire': 'Предложить пару',
     'Publié en tant que :': 'Опубликовано как:',
     'Héros 1': 'Герой 1',
@@ -3732,12 +3746,7 @@ function getFriendlyRegisterErrorMessage(error) {
   const raw = String(error?.message || '');
   const msg = raw.toLowerCase();
 
-  const isRateLimited =
-    code.includes('rate') ||
-    msg.includes('email rate') ||
-    msg.includes('rate limit') ||
-    msg.includes('over_email_send_rate_limit') ||
-    msg.includes('for security purposes');
+  const isRateLimited = isRegisterRateLimitedError(error);
 
   if (isRateLimited) {
     return '⚠ Trop de tentatives d\'inscription en peu de temps. Attends environ 60 secondes puis réessaie.';
@@ -3754,6 +3763,19 @@ function getFriendlyRegisterErrorMessage(error) {
   }
 
   return `✕ ${raw || 'Erreur d\'inscription.'}`;
+}
+
+function isRegisterRateLimitedError(error) {
+  const code = String(error?.code || '').toLowerCase();
+  const raw = String(error?.message || '');
+  const msg = raw.toLowerCase();
+  return (
+    code.includes('rate') ||
+    msg.includes('email rate') ||
+    msg.includes('rate limit') ||
+    msg.includes('over_email_send_rate_limit') ||
+    msg.includes('for security purposes')
+  );
 }
 
 function switchAuthTab(tab) {
@@ -3782,7 +3804,7 @@ function buildSavedAccounts() {
     <div style="display:flex;align-items:center;gap:4px;">
       <button onclick="quickLogin('${u}')"
         style="padding:6px 12px;background:rgba(200,148,42,.1);border:1px solid var(--gold-dim);border-left:none;border-radius:3px 0 0 3px;color:var(--gold);font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.08em;cursor:pointer;transition:all .15s;border-right:none;">
-        👤 ${u}
+        👤 <span class="no-i18n" data-no-translate>${u}</span>
       </button>
       <button onclick="deleteSavedAccount('${u}')" title="Supprimer ce compte"
         style="padding:6px 8px;background:rgba(160,48,48,.15);border:1px solid rgba(160,48,48,.35);border-radius:0 3px 3px 0;color:#e08080;font-size:.8rem;cursor:pointer;transition:all .15s;line-height:1;">
@@ -3885,16 +3907,29 @@ async function login() {
     const loginEmail = normalizeEmail(isEmailLike(username) ? username : userEntry?.user?.email);
     if (!loginEmail) { showError('loginError', '✕ Email introuvable pour ce compte.'); return; }
     const { data, error } = await client.auth.signInWithPassword({ email: loginEmail, password });
-    if (error) { showError('loginError', getFriendlyAuthErrorMessage(error, 'login')); return; }
-    await syncUsersFromCloud({ authUserId: data.user?.id, email: loginEmail, username: userEntry?.username || username });
-    const authEntry = getUserEntryByAuthIdentity(data.user?.id, loginEmail) || userEntry;
-    if (!authEntry) { showError('loginError', '✕ Compte introuvable. Veuillez vous reconnecter.'); return; }
-    authEntry.user.authUserId = data.user?.id || authEntry.user.authUserId || '';
-    authEntry.user.email = loginEmail;
-    authEntry.user.lastLogin = Date.now();
-    users[authEntry.username] = authEntry.user;
-    saveUsersStore(users);
-    currentUser = authEntry.username;
+    if (error) {
+      // Fallback local: compte créé pendant une limitation d'envoi email Supabase.
+      if (userEntry && !userEntry.user.authUserId) {
+        if (userEntry.user.password !== hashPassword(password)) { showError('loginError', '✕ Mot de passe incorrect.'); return; }
+        userEntry.user.lastLogin = Date.now();
+        users[userEntry.username] = userEntry.user;
+        saveUsersStore(users);
+        currentUser = userEntry.username;
+      } else {
+        showError('loginError', getFriendlyAuthErrorMessage(error, 'login'));
+        return;
+      }
+    } else {
+      await syncUsersFromCloud({ authUserId: data.user?.id, email: loginEmail, username: userEntry?.username || username });
+      const authEntry = getUserEntryByAuthIdentity(data.user?.id, loginEmail) || userEntry;
+      if (!authEntry) { showError('loginError', '✕ Compte introuvable. Veuillez vous reconnecter.'); return; }
+      authEntry.user.authUserId = data.user?.id || authEntry.user.authUserId || '';
+      authEntry.user.email = loginEmail;
+      authEntry.user.lastLogin = Date.now();
+      users[authEntry.username] = authEntry.user;
+      saveUsersStore(users);
+      currentUser = authEntry.username;
+    }
   } else {
     if (!userEntry) { showError('loginError', '✕ Utilisateur non trouvé. Créez un compte.'); return; }
     if (userEntry.user.password !== hashPassword(password)) { showError('loginError', '✕ Mot de passe incorrect.'); return; }
@@ -3952,18 +3987,30 @@ async function register() {
       password,
       options: { data: { username } }
     });
-    if (error) { showError('registerError', getFriendlyRegisterErrorMessage(error)); return; }
-    authUserId = data.user?.id || '';
-    if (!data.session) {
-      users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now() };
-      saveUsersStore(users);
-      rememberLocalAccount(username);
-      document.getElementById('registerSuccess').textContent = t('Compte créé. Vérifie ton email puis connecte-toi.');
-      document.getElementById('registerSuccess').style.display = 'block';
-      document.getElementById('loginUsername').value = username;
-      switchAuthTab('login');
+    if (error) {
+      if (isRegisterRateLimitedError(error)) {
+        users[username] = { email, authUserId: '', password: hashPassword(password), created: Date.now(), lastLogin: Date.now() };
+        saveUsersStore(users);
+        rememberLocalAccount(username);
+        document.getElementById('registerSuccess').textContent = 'Compte créé sans vérification email (limite temporaire serveur). Connecte-toi maintenant.';
+        document.getElementById('registerSuccess').style.display = 'block';
+        document.getElementById('loginUsername').value = username;
+        switchAuthTab('login');
+        return;
+      }
+      showError('registerError', getFriendlyRegisterErrorMessage(error));
       return;
     }
+    authUserId = data.user?.id || '';
+
+    users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now() };
+    saveUsersStore(users);
+    rememberLocalAccount(username);
+    document.getElementById('registerSuccess').textContent = t('Compte créé. Vérifie ton email puis connecte-toi.');
+    document.getElementById('registerSuccess').style.display = 'block';
+    document.getElementById('loginUsername').value = username;
+    switchAuthTab('login');
+    return;
   }
 
   users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now() };
@@ -4133,7 +4180,7 @@ function renderAdminTable() {
     const lastLogin = u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('fr-FR') : '—';
 
     return `<tr style="border-bottom:1px solid rgba(255,255,255,.06);">
-      <td style="padding:10px 12px;font-size:.82rem;color:var(--white);">👤 ${k}</td>
+      <td style="padding:10px 12px;font-size:.82rem;color:var(--white);">👤 <span class="no-i18n" data-no-translate>${k}</span></td>
       <td style="padding:10px 12px;font-size:.78rem;color:var(--dim);">${created}</td>
       <td style="padding:10px 12px;font-size:.78rem;color:var(--dim);">${lastLogin}</td>
       <td style="padding:10px 12px;">${statusBadge}</td>
@@ -4520,7 +4567,7 @@ function openProfile() {
     accList.innerHTML = allUsers.map(u => `
       <button onclick="switchAccount('${u}')"
         style="padding:6px 14px;background:rgba(200,148,42,.1);border:1px solid var(--gold-dim);border-radius:3px;color:var(--gold);font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.08em;cursor:pointer;">
-        👤 ${u}
+        👤 <span class="no-i18n" data-no-translate>${u}</span>
       </button>`).join('');
   }
   document.getElementById('profileModal').style.display = 'flex';
@@ -4616,7 +4663,7 @@ function showPublicPairs() {
 }
 
 const TROOP_TYPES = ['infantry','cavalry','archer','beast'];
-const TYPE_LABELS = { infantry:'⚔️ Infanterie', cavalry:'🐴 Cavalerie', archer:'🏹 Archers', beast:'🐉 Chevaucheur de bête' };
+const TYPE_LABELS = { infantry:'⚔️ Berserkers', cavalry:'🐴 Cavalerie', archer:'🏹 Archers', beast:'🐉 Chevaucheur de bête' };
 
 let DATA = {
   infantry: [{tier:1,food:0,wood:0,stone:0,iron:0,time:131},{tier:2,food:0,wood:0,stone:0,iron:0,time:131},{tier:3,food:0,wood:0,stone:0,iron:0,time:131},{tier:4,food:0,wood:0,stone:0,iron:0,time:131},{tier:5,food:0,wood:0,stone:0,iron:0,time:130},{tier:6,food:0,wood:0,stone:0,iron:0,time:131},{tier:7,food:0,wood:0,stone:0,iron:0,time:131}],
@@ -6617,10 +6664,11 @@ function renderSynergyPairs(){
     return true;
   });
   const sorted = [...filtered].sort((a,b) => {
+    const likesDiff = (b.likes || 0) - (a.likes || 0);
+    if (likesDiff !== 0) return likesDiff;
     const scoreA = (a.likes || 0) - (a.dislikes || 0);
     const scoreB = (b.likes || 0) - (b.dislikes || 0);
-    if (scoreB !== scoreA) return scoreB - scoreA;
-    return (b.likes || 0) - (a.likes || 0);
+    return scoreB - scoreA;
   });
 
   const synergyHTML = sorted.map((p,i) => {
@@ -6665,12 +6713,17 @@ function renderSynergyPairs(){
     (!normalizedTroopFilter || normalizeTroopCategory(pair.troopType) === normalizedTroopFilter) &&
     (!contextFilter || (pair.context || '') === contextFilter)
   );
+  const sortedShared = [...filteredShared].sort((a, b) => {
+    const likesDiff = (b.likes || 0) - (a.likes || 0);
+    if (likesDiff !== 0) return likesDiff;
+    return (b.timestamp || 0) - (a.timestamp || 0);
+  });
 
   let communityHTML = '';
-  if (filteredShared.length > 0) {
+  if (sortedShared.length > 0) {
     communityHTML = `<div style="margin:28px 0 12px;padding-top:20px;border-top:1px solid rgba(200,148,42,.2);">
       <div style="font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.12em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:14px;">🌍 ${t('Compositions de la Communauté')}</div>
-    </div>` + filteredShared.map(pair => {
+    </div>` + sortedShared.map(pair => {
       const h1 = HEROES.find(h => h.id === pair.hero1);
       const h2 = HEROES.find(h => h.id === pair.hero2);
       if (!h1 || !h2) return '';
