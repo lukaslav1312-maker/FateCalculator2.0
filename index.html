@@ -570,6 +570,23 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
   <div class="ao-spinner"></div>
 </div>
 
+<!-- ══ EMAIL VERIFICATION SUCCESS ══ -->
+<div id="emailVerificationSuccess" class="page-content" style="min-height:100vh;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(64,192,192,.14) 0%, transparent 70%);padding:24px;">
+  <div style="width:100%;max-width:520px;background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);text-align:center;">
+    <div style="padding:28px 24px 18px;background:linear-gradient(180deg, rgba(64,192,192,.14), rgba(64,192,192,.04));border-bottom:1px solid var(--border);">
+      <div style="font-size:3.1rem;line-height:1;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(64,192,192,.35));">✅</div>
+      <div style="font-family:'Cinzel Decorative',serif;color:var(--teal-lt);font-size:1.45rem;letter-spacing:.04em;">Verification Reussie</div>
+    </div>
+    <div style="padding:24px;">
+      <p style="font-size:1rem;line-height:1.7;color:var(--text);margin-bottom:12px;">Ton adresse email a bien ete confirmee.</p>
+      <p style="font-size:.9rem;line-height:1.7;color:var(--dim);margin-bottom:22px;">Tu peux maintenant te connecter a ton compte Fate War.</p>
+      <button onclick="dismissEmailVerificationSuccess()" style="padding:12px 22px;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:3px;color:#0a0b0f;font-family:'Cinzel',serif;font-size:.82rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 20px rgba(200,148,42,.25);">
+        Se connecter
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL PROFIL ══ -->
 <div id="profileModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:28px;width:100%;max-width:420px;margin:20px;position:relative;">
@@ -3716,6 +3733,13 @@ function hideMsg(id) {
   if (el) el.style.display = 'none';
 }
 
+function setEmailVerificationSuccessVisible(visible) {
+  const page = document.getElementById('emailVerificationSuccess');
+  if (!page) return;
+  page.style.display = visible ? 'flex' : 'none';
+  page.classList.toggle('active', visible);
+}
+
 function getFriendlyAuthErrorMessage(error, mode = 'login') {
   const code = String(error?.code || '').toLowerCase();
   const raw = String(error?.message || '');
@@ -3831,6 +3855,7 @@ function quickLogin(username) {
 }
 
 function showLoginPage() {
+  setEmailVerificationSuccessVisible(false);
   setLoginPageVisible(true);
   document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
   document.getElementById('login').classList.add('active');
@@ -3841,16 +3866,36 @@ function showLoginPage() {
   buildSavedAccounts();
   const _ov2 = document.getElementById('authOverlay');
   if (_ov2) { _ov2.classList.add('hidden'); setTimeout(()=>{ _ov2.style.display='none'; }, 350); }
+}
 
-  if (consumeEmailVerificationNotice()) {
-    setTimeout(() => {
-      alert('✅ Vérification email confirmée. Tu peux maintenant te connecter.');
-    }, 120);
+function showEmailVerificationSuccessPage() {
+  setLoginPageVisible(false);
+  document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+  document.getElementById('navButtons').style.display = 'none';
+  document.getElementById('userInfo').style.display = 'none';
+  closeSupportModal();
+  setEmailVerificationSuccessVisible(true);
+
+  const overlay = document.getElementById('authOverlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    setTimeout(() => { overlay.style.display = 'none'; }, 350);
   }
 }
 
+function dismissEmailVerificationSuccess() {
+  consumeEmailVerificationNotice();
+  showLoginPage();
+  switchAuthTab('login');
+  document.getElementById('loginUsername')?.focus();
+}
+
+function hasPendingEmailVerificationNotice() {
+  return sessionStorage.getItem('fw_email_verification_confirmed') === '1';
+}
+
 function consumeEmailVerificationNotice() {
-  if (sessionStorage.getItem('fw_email_verification_confirmed') !== '1') return false;
+  if (!hasPendingEmailVerificationNotice()) return false;
   sessionStorage.removeItem('fw_email_verification_confirmed');
   return true;
 }
@@ -4084,6 +4129,19 @@ async function checkAuth() {
   try {
     captureEmailVerificationReturn();
 
+    if (hasPendingEmailVerificationNotice()) {
+      const client = getSupabaseClient();
+      if (client) {
+        try { await client.auth.signOut(); } catch (err) { console.error('signOut after verification failed:', err); }
+      }
+      currentUser = null;
+      isAdmin = false;
+      localStorage.removeItem('fw_current_user');
+      sessionStorage.removeItem('fw_current_user');
+      showEmailVerificationSuccessPage();
+      return;
+    }
+
     if (sessionStorage.getItem('fw_admin_session') === '1') {
       isAdmin = true;
       currentUser = ADMIN_USERNAME;
@@ -4101,11 +4159,6 @@ async function checkAuth() {
           currentUser = authEntry.username;
           localStorage.setItem('fw_current_user', currentUser);
           showMainApp();
-          if (consumeEmailVerificationNotice()) {
-            setTimeout(() => {
-              alert('✅ Vérification email confirmée. Tu peux maintenant te connecter.');
-            }, 120);
-          }
           return;
         }
       }
