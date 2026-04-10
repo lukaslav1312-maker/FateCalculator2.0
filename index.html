@@ -4428,6 +4428,12 @@ function showPublicPairs() {
   void loadSharedPairs().then(() => renderSharedPairs());
   loadPairLikes();
   renderSynergyPairs();
+
+  const overlay = document.getElementById('authOverlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    setTimeout(() => { overlay.style.display = 'none'; }, 350);
+  }
 }
 
 const TROOP_TYPES = ['infantry','cavalry','archer','beast'];
@@ -6784,6 +6790,15 @@ function deleteSynergyPair(h1, h2){
 // Initialize language on page load
 switchLang(currentLang);
 ensureI18nObserver();
+
+// Failsafe: avoid permanent loading overlay if auth/network hangs.
+setTimeout(() => {
+  const overlay = document.getElementById('authOverlay');
+  if (!overlay || overlay.style.display === 'none') return;
+  overlay.classList.add('hidden');
+  setTimeout(() => { overlay.style.display = 'none'; }, 350);
+}, 9000);
+
 checkAuth();
 
 </script>
