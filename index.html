@@ -3216,6 +3216,8 @@ let sharedPairs = [];
 let supabaseClient = null;
 let cloudRefreshHandle = null;
 let registerInProgress = false;
+let registerRateLimitUntil = 0;
+let resendCooldownTickHandle = null;
 
 function isSupabaseConfigured() {
   return SUPABASE_URL && SUPABASE_ANON_KEY &&
@@ -3783,6 +3785,51 @@ function hideMsg(id) {
   if (el) el.style.display = 'none';
 }
 
+function getRemainingSeconds(untilMs) {
+  return Math.max(0, Math.ceil((Number(untilMs || 0) - Date.now()) / 1000));
+}
+
+function getResendCooldownUntil(email) {
+  const key = `fw_resend_cooldown_${normalizeEmail(email)}`;
+  const raw = Number(localStorage.getItem(key) || '0');
+  return Number.isFinite(raw) ? raw : 0;
+}
+
+function setResendCooldownUntil(email, untilMs) {
+  const key = `fw_resend_cooldown_${normalizeEmail(email)}`;
+  localStorage.setItem(key, String(Math.max(0, Number(untilMs || 0))));
+}
+
+function refreshResendButtonState() {
+  const btn = document.getElementById('resendVerificationBtn');
+  if (!btn) return;
+  const identifier = String(btn.dataset.identifier || '').trim();
+  const userEntry = getUserEntryByIdentifier(identifier);
+  const email = normalizeEmail(isEmailLike(identifier) ? identifier : userEntry?.user?.email);
+  const cooldownUntil = email ? getResendCooldownUntil(email) : 0;
+  const remaining = getRemainingSeconds(cooldownUntil);
+
+  if (remaining > 0) {
+    btn.disabled = true;
+    btn.style.opacity = '0.65';
+    btn.style.cursor = 'not-allowed';
+    btn.textContent = `⏳ Renvoyer dans ${remaining}s`;
+
+    if (resendCooldownTickHandle) clearTimeout(resendCooldownTickHandle);
+    resendCooldownTickHandle = setTimeout(refreshResendButtonState, 1000);
+    return;
+  }
+
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.style.cursor = 'pointer';
+  btn.textContent = "✉️ Renvoyer l'email de confirmation";
+  if (resendCooldownTickHandle) {
+    clearTimeout(resendCooldownTickHandle);
+    resendCooldownTickHandle = null;
+  }
+}
+
 function setResendVerificationTarget(identifier = '') {
   const wrap = document.getElementById('resendVerificationWrap');
   const btn = document.getElementById('resendVerificationBtn');
@@ -3790,6 +3837,7 @@ function setResendVerificationTarget(identifier = '') {
   const value = String(identifier || '').trim();
   btn.dataset.identifier = value;
   wrap.style.display = value ? 'block' : 'none';
+  refreshResendButtonState();
 }
 
 async function resendVerificationEmail() {
@@ -3805,6 +3853,14 @@ async function resendVerificationEmail() {
   const email = normalizeEmail(isEmailLike(identifier) ? identifier : userEntry?.user?.email);
   if (!email) {
     showError('loginError', '✕ Email introuvable pour renvoyer la confirmation.');
+    return;
+  }
+
+  const resendRemaining = getRemainingSeconds(getResendCooldownUntil(email));
+  if (resendRemaining > 0) {
+    hideMsg('loginError');
+    showNotice('loginNotice', `⚠ Attends encore ${resendRemaining}s avant de renvoyer un email.`);
+    refreshResendButtonState();
     return;
   }
 
@@ -3826,13 +3882,21 @@ async function resendVerificationEmail() {
     });
 
     if (error) {
-      showError('loginError', isRegisterRateLimitedError(error)
-        ? '⚠ Attends environ 60 secondes avant de renvoyer un nouvel email.'
-        : getFriendlyRegisterErrorMessage(error));
+      if (isRegisterRateLimitedError(error)) {
+        const until = Date.now() + 65000;
+        setResendCooldownUntil(email, until);
+        hideMsg('loginError');
+        showNotice('loginNotice', '⚠ Trop de tentatives. Attends environ 60 secondes avant de renvoyer un email.');
+        refreshResendButtonState();
+        return;
+      }
+      showError('loginError', getFriendlyRegisterErrorMessage(error));
       return;
     }
 
+    setResendCooldownUntil(email, Date.now() + 65000);
     showNotice('loginNotice', '✔ Email de confirmation renvoyé. Vérifie ta boîte mail.');
+    refreshResendButtonState();
   } catch (err) {
     console.error('resendVerificationEmail failed:', err);
     showError('loginError', '✕ Impossible de renvoyer l\'email de confirmation.');
@@ -4164,6 +4228,12 @@ async function register() {
     return;
   }
 
+  const registerRemaining = getRemainingSeconds(registerRateLimitUntil);
+  if (registerRemaining > 0) {
+    showError('registerError', `⚠ Trop de tentatives. Attends encore ${registerRemaining}s puis réessaie.`);
+    return;
+  }
+
   registerInProgress = true;
   const registerBtn = document.getElementById('registerSubmitBtn');
   if (registerBtn) {
@@ -4204,6 +4274,7 @@ async function register() {
     });
     if (error) {
       if (isRegisterRateLimitedError(error)) {
+        registerRateLimitUntil = Date.now() + 65000;
         const pendingEntry = getPendingVerificationUserEntry(username) || getPendingVerificationUserEntry(email);
         if (pendingEntry) {
           switchAuthTab('login');
@@ -4212,6 +4283,11 @@ async function register() {
           setResendVerificationTarget(pendingEntry.user.email || email);
           return;
         }
+        switchAuthTab('login');
+        showNotice('loginNotice', '⚠ Trop de tentatives côté serveur. Attends environ 60 secondes, puis utilise le bouton de renvoi.');
+        document.getElementById('loginUsername').value = email;
+        setResendVerificationTarget(email);
+        return;
       }
       showError('registerError', getFriendlyRegisterErrorMessage(error));
       return;
