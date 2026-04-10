@@ -3813,8 +3813,7 @@ async function resendVerificationEmail() {
     return;
   }
 
-  const userEntry = getUserEntryByIdentifier(identifier);
-  const email = normalizeEmail(isEmailLike(identifier) ? identifier : userEntry?.user?.email);
+  const email = await resolveResendTargetEmail(identifier);
   if (!email) {
     showError('loginError', '✕ Email introuvable pour renvoyer la confirmation.');
     return;
@@ -3827,6 +3826,7 @@ async function resendVerificationEmail() {
     btn.style.opacity = '0.65';
     btn.style.cursor = 'not-allowed';
   }
+  showNotice('loginNotice', '⏳ Envoi de l\'email de confirmation...');
 
   try {
     const { error } = await client.auth.resend({
@@ -3838,12 +3838,8 @@ async function resendVerificationEmail() {
     });
 
     if (error) {
-      if (isRegisterRateLimitedError(error)) {
-        hideMsg('loginError');
-        showNotice('loginNotice', '⚠ Trop de tentatives. Attends environ 60 secondes avant de renvoyer un email.');
-        return;
-      }
-      showError('loginError', getFriendlyRegisterErrorMessage(error));
+      hideMsg('loginNotice');
+      showError('loginError', getFriendlyResendErrorMessage(error));
       return;
     }
 
@@ -3920,6 +3916,48 @@ function getPendingVerificationUserEntry(identifier) {
     (username === identifier || normalizeEmail(user.email) === normalized)
   );
   return match ? { username: match[0], user: match[1] } : null;
+}
+
+function getFriendlyResendErrorMessage(error) {
+  const code = String(error?.code || '').toLowerCase();
+  const raw = String(error?.message || '');
+  const msg = raw.toLowerCase();
+
+  if (isRegisterRateLimitedError(error)) {
+    return '⚠ Trop de tentatives. Attends environ 60 secondes avant de renvoyer un email.';
+  }
+
+  if (
+    code.includes('not_found') ||
+    msg.includes('user not found') ||
+    msg.includes('already confirmed')
+  ) {
+    return '⚠ Impossible de renvoyer: compte introuvable ou déjà confirmé.';
+  }
+
+  return `✕ ${raw || 'Erreur lors du renvoi de l\'email.'}`;
+}
+
+async function resolveResendTargetEmail(identifier) {
+  const id = String(identifier || '').trim();
+  if (!id) return '';
+  if (isEmailLike(id)) return normalizeEmail(id);
+
+  let userEntry = getUserEntryByIdentifier(id);
+  if (userEntry?.user?.email) return normalizeEmail(userEntry.user.email);
+
+  const client = getSupabaseClient();
+  if (client) {
+    try {
+      await syncUsersFromCloud({ username: id });
+      userEntry = getUserEntryByIdentifier(id);
+      if (userEntry?.user?.email) return normalizeEmail(userEntry.user.email);
+    } catch (err) {
+      console.error('resolveResendTargetEmail failed:', err);
+    }
+  }
+
+  return '';
 }
 
 function isRegisterRateLimitedError(error) {
