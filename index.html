@@ -3199,6 +3199,7 @@ window.confirm = function(message) {
 // ── Identifiants admin (hardcodés – ne pas stocker dans fw_users) ──
 const ADMIN_USERNAME = 'ADMIN_FW';
 const ADMIN_PASSWORD_HASH_KEY = 'fw_admin_password_hash';
+const APP_PUBLIC_URL = localStorage.getItem('fw_app_public_url') || 'https://fate-calculator2-0.vercel.app';
 const SUPABASE_URL = localStorage.getItem('fw_supabase_url') || 'https://vyrrhkkrtzgvhbjgeiwo.supabase.co';
 const SUPABASE_ANON_KEY = localStorage.getItem('fw_supabase_anon_key') || 'sb_publishable_hz-mFNhVfg5F7im0xOfcAg_Zf46ihr_';
 const SUPABASE_USERS_TABLE = 'fw_users';
@@ -3223,6 +3224,28 @@ function getSupabaseClient() {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
   return supabaseClient;
+}
+
+function getEmailVerificationRedirectUrl() {
+  const publicUrl = String(APP_PUBLIC_URL || '').trim().replace(/\/$/, '');
+
+  try {
+    const current = new URL(window.location.href);
+    const isLocalOrigin =
+      current.protocol === 'file:' ||
+      current.hostname === 'localhost' ||
+      current.hostname === '127.0.0.1' ||
+      current.hostname === '0.0.0.0';
+
+    const targetBase = isLocalOrigin
+      ? publicUrl
+      : `${current.origin}${current.pathname}`;
+
+    return `${String(targetBase || publicUrl).replace(/\/$/, '')}?email_confirm=1`;
+  } catch (err) {
+    console.error('getEmailVerificationRedirectUrl failed:', err);
+    return `${publicUrl}?email_confirm=1`;
+  }
 }
 
 function getAdminApiAuth() {
@@ -4057,7 +4080,7 @@ async function register() {
 
   let authUserId = '';
   if (client) {
-    const emailRedirectTo = `${window.location.origin}${window.location.pathname}?email_confirm=1`;
+    const emailRedirectTo = getEmailVerificationRedirectUrl();
     const { data, error } = await client.auth.signUp({
       email,
       password,
