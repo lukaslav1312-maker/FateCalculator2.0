@@ -161,66 +161,50 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
   .top-lang-bar { top: max(6px, env(safe-area-inset-top)); left: 8px; }
 }
 
-/* ── CREATOR FOOTER ── */
+/* ── CREATOR BADGE ── */
 #creatorFooter {
-  position:fixed;
-  bottom:0;
-  right:0;
-  margin:12px;
-  padding:10px 16px;
-  background:linear-gradient(135deg, rgba(200,148,42,.15), rgba(200,148,42,.05));
-  border:1px solid rgba(200,148,42,.4);
-  border-radius:6px;
+  position:absolute;
+  top:calc(max(8px, env(safe-area-inset-top)) + 42px);
+  left:10px;
+  margin:0;
+  padding:6px 10px;
+  background:rgba(200,148,42,.25);
+  border:1px solid var(--gold);
+  border-radius:3px;
   font-family:'Cinzel',serif;
-  font-size:.7rem;
-  letter-spacing:.1em;
-  color:var(--gold-lt);
+  font-size:.65rem;
+  letter-spacing:.08em;
+  color:var(--gold);
   text-transform:uppercase;
-  box-shadow:0 0 20px rgba(200,148,42,.2);
-  animation:creatorGlow 3s ease-in-out infinite;
-  z-index:9900;
+  box-shadow:none;
+  z-index:10002;
   pointer-events:none;
   text-align:center;
-  min-width:120px;
-}
-
-@keyframes creatorGlow {
-  0%, 100% { box-shadow:0 0 20px rgba(200,148,42,.2), 0 0 40px rgba(200,148,42,.1); }
-  50% { box-shadow:0 0 30px rgba(200,148,42,.4), 0 0 60px rgba(200,148,42,.2); }
+  min-width:0;
 }
 
 #creatorFooter .creator-label {
-  display:block;
-  font-size:.6rem;
-  color:var(--dim);
-  margin-bottom:3px;
-  letter-spacing:.12em;
+  display:none;
 }
 
 #creatorFooter .creator-name {
-  display:block;
-  font-size:.8rem;
-  color:var(--gold-lt);
-  font-weight:700;
-  text-shadow:0 0 10px rgba(200,148,42,.5);
-  animation:creatorPulse 2s ease-in-out infinite;
-}
-
-@keyframes creatorPulse {
-  0%, 100% { opacity:1; }
-  50% { opacity:.8; }
+  display:inline;
+  margin-left:0;
+  font-size:.65rem;
+  color:var(--gold);
+  font-weight:400;
+  text-shadow:none;
 }
 
 @media(max-width:600px){
   #creatorFooter {
-    bottom:60px;
-    right:8px;
-    padding:8px 12px;
-    font-size:.6rem;
-    min-width:100px;
+    top:calc(max(6px, env(safe-area-inset-top)) + 38px);
+    left:8px;
+    padding:6px 10px;
+    font-size:.65rem;
+    min-width:0;
   }
-  #creatorFooter .creator-label { font-size:.5rem; }
-  #creatorFooter .creator-name { font-size:.7rem; }
+  #creatorFooter .creator-name { font-size:.65rem; }
 }
 
 /* ── AUTH LOADING OVERLAY ── */
@@ -7124,8 +7108,8 @@ checkAuth();
 
 <!-- ══ CREATOR FOOTER ══ -->
 <div id="creatorFooter">
-  <span class="creator-label">⚔️ Créateur</span>
-  <span class="creator-name no-i18n" data-no-translate>Lukass.GODSENT</span>
+  <span class="creator-label no-i18n" data-no-translate>⚔️ Createur</span>
+  <span class="creator-name no-i18n" data-no-translate>⚔️ LUKASS</span>
 </div>
 
 <!-- ===== SUBSCRIPTION SECTION ===== -->
