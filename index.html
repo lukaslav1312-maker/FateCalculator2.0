@@ -141,7 +141,7 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
 .lang-btn.active { background:rgba(200,148,42,.25); border-color:var(--gold); }
 .top-lang-bar {
   position: fixed;
-  top: 10px;
+  top: max(8px, env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -154,10 +154,11 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
   border-radius: 999px;
   padding: 6px 8px;
   box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  pointer-events: auto;
 }
 @media(max-width:600px){
-  header { padding-top: 94px; }
-  .top-lang-bar { top: 8px; }
+  header { padding-top: 108px; }
+  .top-lang-bar { top: max(6px, env(safe-area-inset-top)); }
 }
 
 /* ── CREATOR FOOTER ── */
@@ -509,6 +510,9 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
   display:flex;
   align-items:center;
   justify-content:center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .hero-skill-btn:hover {
@@ -535,6 +539,14 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
   color:var(--gold-lt);
   letter-spacing:.06em;
   font-size:.86rem;
+}
+
+@media(max-width:600px){
+  .hero-skill-btn {
+    width:42px;
+    height:42px;
+    font-size:1.2rem;
+  }
 }
 
 .hero-memo-grid {
@@ -3846,6 +3858,41 @@ function showLoginPage() {
   buildSavedAccounts();
   const _ov2 = document.getElementById('authOverlay');
   if (_ov2) { _ov2.classList.add('hidden'); setTimeout(()=>{ _ov2.style.display='none'; }, 350); }
+
+  if (consumeEmailVerificationNotice()) {
+    setTimeout(() => {
+      alert('✅ Vérification email confirmée. Tu peux maintenant te connecter.');
+    }, 120);
+  }
+}
+
+function consumeEmailVerificationNotice() {
+  if (sessionStorage.getItem('fw_email_verification_confirmed') !== '1') return false;
+  sessionStorage.removeItem('fw_email_verification_confirmed');
+  return true;
+}
+
+function captureEmailVerificationReturn() {
+  try {
+    const searchParams = new URLSearchParams(window.location.search || '');
+    const hashParams = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+    const type = searchParams.get('type') || hashParams.get('type') || '';
+    const hasVerificationToken =
+      searchParams.has('token_hash') ||
+      hashParams.has('access_token') ||
+      hashParams.has('token_hash');
+    const explicitConfirm = searchParams.get('email_confirm') === '1';
+
+    if (!explicitConfirm && !(type === 'signup' && hasVerificationToken)) return;
+
+    sessionStorage.setItem('fw_email_verification_confirmed', '1');
+
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  } catch (err) {
+    console.error('captureEmailVerificationReturn failed:', err);
+  }
 }
 
 async function restoreCurrentUserFromSession() {
@@ -3982,10 +4029,14 @@ async function register() {
 
   let authUserId = '';
   if (client) {
+    const emailRedirectTo = `${window.location.origin}${window.location.pathname}?email_confirm=1`;
     const { data, error } = await client.auth.signUp({
       email,
       password,
-      options: { data: { username } }
+      options: {
+        data: { username },
+        emailRedirectTo
+      }
     });
     if (error) {
       if (isRegisterRateLimitedError(error)) {
@@ -4048,6 +4099,8 @@ async function logout() {
 
 async function checkAuth() {
   try {
+    captureEmailVerificationReturn();
+
     if (sessionStorage.getItem('fw_admin_session') === '1') {
       isAdmin = true;
       currentUser = ADMIN_USERNAME;
@@ -4065,6 +4118,11 @@ async function checkAuth() {
           currentUser = authEntry.username;
           localStorage.setItem('fw_current_user', currentUser);
           showMainApp();
+          if (consumeEmailVerificationNotice()) {
+            setTimeout(() => {
+              alert('✅ Vérification email confirmée. Tu peux maintenant te connecter.');
+            }, 120);
+          }
           return;
         }
       }
@@ -6286,9 +6344,9 @@ function renderHeroSkillsPage() {
     return `<div class="hero-skill-card">
       <div class="hero-skill-name">Skill ${number}</div>
       <div class="hero-skill-ctrl">
-        <button class="hero-skill-btn" onclick="adjustHeroSkillLevel(${idx}, -1)">−</button>
+        <button type="button" class="hero-skill-btn" onclick="adjustHeroSkillLevel(${idx}, -1)">−</button>
         <div class="hero-skill-lvl">Niv ${lvl} / 5</div>
-        <button class="hero-skill-btn" onclick="adjustHeroSkillLevel(${idx}, 1)">+</button>
+        <button type="button" class="hero-skill-btn" onclick="adjustHeroSkillLevel(${idx}, 1)">+</button>
       </div>
     </div>`;
   }).join('');
