@@ -3818,6 +3818,9 @@ async function resendVerificationEmail() {
     showError('loginError', '✕ Email introuvable pour renvoyer la confirmation.');
     return;
   }
+  const maskedEmail = maskEmail(email);
+  const loginInput = document.getElementById('loginUsername');
+  if (loginInput) loginInput.value = email;
 
   hideMsg('loginError');
   hideMsg('loginNotice');
@@ -3826,7 +3829,7 @@ async function resendVerificationEmail() {
     btn.style.opacity = '0.65';
     btn.style.cursor = 'not-allowed';
   }
-  showNotice('loginNotice', '⏳ Envoi de l\'email de confirmation...');
+  showNotice('loginNotice', `⏳ Envoi de l'email de confirmation vers ${maskedEmail}...`);
 
   try {
     const { error } = await client.auth.resend({
@@ -3843,7 +3846,7 @@ async function resendVerificationEmail() {
       return;
     }
 
-    showNotice('loginNotice', '✔ Email de confirmation renvoyé. Vérifie ta boîte mail.');
+    showNotice('loginNotice', `✔ Email de confirmation renvoyé vers ${maskedEmail}. Vérifie aussi Spam/Promotions.`);
   } catch (err) {
     console.error('resendVerificationEmail failed:', err);
     showError('loginError', '✕ Impossible de renvoyer l\'email de confirmation.');
@@ -3958,6 +3961,16 @@ async function resolveResendTargetEmail(identifier) {
   }
 
   return '';
+}
+
+function maskEmail(email) {
+  const value = normalizeEmail(email);
+  const parts = value.split('@');
+  if (parts.length !== 2) return value;
+  const local = parts[0];
+  const domain = parts[1];
+  if (local.length <= 2) return `${local[0] || '*'}*@${domain}`;
+  return `${local.slice(0, 2)}***@${domain}`;
 }
 
 function isRegisterRateLimitedError(error) {
@@ -4261,7 +4274,7 @@ async function register() {
         if (pendingEntry) {
           switchAuthTab('login');
           showNotice('loginNotice', 'Compte déjà créé. Vérifie ton email de confirmation, puis connecte-toi.');
-          document.getElementById('loginUsername').value = pendingEntry.username;
+          document.getElementById('loginUsername').value = pendingEntry.user.email || email;
           setResendVerificationTarget(pendingEntry.user.email || email);
           return;
         }
@@ -4279,7 +4292,7 @@ async function register() {
     users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now(), localOnlyAuth: false, requiresEmailVerification: true };
     saveUsersStore(users);
     rememberLocalAccount(username);
-    document.getElementById('loginUsername').value = username;
+    document.getElementById('loginUsername').value = email;
     switchAuthTab('login');
     showNotice('loginNotice', t('Compte créé. Vérifie ton email puis connecte-toi.'));
     setResendVerificationTarget(email);
