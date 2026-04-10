@@ -3226,6 +3226,17 @@ function getSupabaseClient() {
   return supabaseClient;
 }
 
+function hasVerifiedSupabaseSession(authResult) {
+  const session = authResult?.session || null;
+  const user = authResult?.user || session?.user || null;
+  const confirmedAt = user?.email_confirmed_at || user?.confirmed_at || '';
+  return !!(session && user && confirmedAt);
+}
+
+function canUseLocalOnlyAuth(userEntry) {
+  return !!(userEntry && userEntry.user && !userEntry.user.authUserId && userEntry.user.localOnlyAuth === true);
+}
+
 function getEmailVerificationRedirectUrl() {
   const publicUrl = String(APP_PUBLIC_URL || '').trim().replace(/\/$/, '');
 
@@ -3292,6 +3303,8 @@ function normalizeCloudUserRow(row) {
     password: row.password_hash || data.password || '',
     created: row.created_at_ms || data.created || Date.now(),
     lastLogin: row.last_login_ms || data.lastLogin || Date.now(),
+    localOnlyAuth: data.localOnlyAuth === true,
+    requiresEmailVerification: data.requiresEmailVerification === true,
     premium: row.premium ?? data.premium
   };
 }
@@ -3949,31 +3962,34 @@ function captureEmailVerificationReturn() {
 async function restoreCurrentUserFromSession() {
   if (currentUser) return currentUser;
 
+  const client = getSupabaseClient();
+
+  if (client) {
+    try {
+      const { data, error } = await client.auth.getSession();
+      const sessionUser = data?.session?.user;
+      if (error || !sessionUser || !hasVerifiedSupabaseSession(data)) return null;
+
+      await syncUsersFromCloud({ authUserId: sessionUser.id, email: sessionUser.email });
+      const authEntry = getUserEntryByAuthIdentity(sessionUser.id, sessionUser.email);
+      if (!authEntry) return null;
+
+      currentUser = authEntry.username;
+      sessionStorage.setItem('fw_current_user', currentUser);
+      return currentUser;
+    } catch (err) {
+      console.error('restoreCurrentUserFromSession failed:', err);
+      return null;
+    }
+  }
+
   const savedUser = localStorage.getItem('fw_current_user') || sessionStorage.getItem('fw_current_user');
   if (savedUser && getUsersStore()[savedUser]) {
     currentUser = savedUser;
     return currentUser;
   }
 
-  const client = getSupabaseClient();
-  if (!client) return null;
-
-  try {
-    const { data, error } = await client.auth.getSession();
-    const sessionUser = data?.session?.user;
-    if (error || !sessionUser) return null;
-
-    await syncUsersFromCloud({ authUserId: sessionUser.id, email: sessionUser.email });
-    const authEntry = getUserEntryByAuthIdentity(sessionUser.id, sessionUser.email);
-    if (!authEntry) return null;
-
-    currentUser = authEntry.username;
-    sessionStorage.setItem('fw_current_user', currentUser);
-    return currentUser;
-  } catch (err) {
-    console.error('restoreCurrentUserFromSession failed:', err);
-    return null;
-  }
+  return null;
 }
 
 async function login() {
@@ -4006,8 +4022,7 @@ async function login() {
     if (!loginEmail) { showError('loginError', '✕ Email introuvable pour ce compte.'); return; }
     const { data, error } = await client.auth.signInWithPassword({ email: loginEmail, password });
     if (error) {
-      // Fallback local: compte créé pendant une limitation d'envoi email Supabase.
-      if (userEntry && !userEntry.user.authUserId) {
+      if (canUseLocalOnlyAuth(userEntry)) {
         if (userEntry.user.password !== hashPassword(password)) { showError('loginError', '✕ Mot de passe incorrect.'); return; }
         userEntry.user.lastLogin = Date.now();
         users[userEntry.username] = userEntry.user;
@@ -4018,11 +4033,18 @@ async function login() {
         return;
       }
     } else {
+      if (!hasVerifiedSupabaseSession(data)) {
+        try { await client.auth.signOut(); } catch (err) { console.error('signOut after unverified login failed:', err); }
+        showError('loginError', '⚠ Vérifie ton email et confirme ton compte avant de te connecter.');
+        return;
+      }
       await syncUsersFromCloud({ authUserId: data.user?.id, email: loginEmail, username: userEntry?.username || username });
       const authEntry = getUserEntryByAuthIdentity(data.user?.id, loginEmail) || userEntry;
       if (!authEntry) { showError('loginError', '✕ Compte introuvable. Veuillez vous reconnecter.'); return; }
       authEntry.user.authUserId = data.user?.id || authEntry.user.authUserId || '';
       authEntry.user.email = loginEmail;
+      authEntry.user.localOnlyAuth = false;
+      authEntry.user.requiresEmailVerification = false;
       authEntry.user.lastLogin = Date.now();
       users[authEntry.username] = authEntry.user;
       saveUsersStore(users);
@@ -4090,22 +4112,12 @@ async function register() {
       }
     });
     if (error) {
-      if (isRegisterRateLimitedError(error)) {
-        users[username] = { email, authUserId: '', password: hashPassword(password), created: Date.now(), lastLogin: Date.now() };
-        saveUsersStore(users);
-        rememberLocalAccount(username);
-        document.getElementById('registerSuccess').textContent = 'Compte créé sans vérification email (limite temporaire serveur). Connecte-toi maintenant.';
-        document.getElementById('registerSuccess').style.display = 'block';
-        document.getElementById('loginUsername').value = username;
-        switchAuthTab('login');
-        return;
-      }
       showError('registerError', getFriendlyRegisterErrorMessage(error));
       return;
     }
     authUserId = data.user?.id || '';
 
-    users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now() };
+    users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now(), localOnlyAuth: false, requiresEmailVerification: true };
     saveUsersStore(users);
     rememberLocalAccount(username);
     document.getElementById('registerSuccess').textContent = t('Compte créé. Vérifie ton email puis connecte-toi.');
@@ -4115,7 +4127,7 @@ async function register() {
     return;
   }
 
-  users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now() };
+  users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now(), localOnlyAuth: true, requiresEmailVerification: false };
   currentUser = username;
   rememberLocalAccount(username);
   saveUsersStore(users);
@@ -4175,7 +4187,7 @@ async function checkAuth() {
     const client = getSupabaseClient();
     if (client) {
       const { data, error } = await client.auth.getSession();
-      if (!error && data && data.session && data.session.user) {
+      if (!error && data && data.session && data.session.user && hasVerifiedSupabaseSession(data)) {
         await syncUsersFromCloud({ authUserId: data.session.user.id, email: data.session.user.email });
         const authEntry = getUserEntryByAuthIdentity(data.session.user.id, data.session.user.email);
         if (authEntry) {
