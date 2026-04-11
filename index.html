@@ -748,39 +748,31 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
 
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:30px;">
 
-    <!-- Calculateur -->
-    <div class="clash-panel" style="cursor:pointer;" onclick="switchPage('calcHub',document.querySelector('.page-btn[onclick*=&quot;calcHub&quot;]'))">
-      <div class="clash-ph"><span>⚔️</span><h3>Calculateur de Troupes Premium</h3></div>
+    <!-- Calculateur Premium (Combined) -->
+    <div class="clash-panel" style="cursor:pointer;grid-column:span 1;" onclick="switchPage('calcHub',document.querySelector('.page-btn[onclick*=&quot;calcHub&quot;]'))">
+      <div class="clash-ph"><span>⚔️</span><h3>Calculateur (premium)</h3></div>
       <div class="clash-pb">
-        <p style="font-size:.9rem;color:var(--text-dim);line-height:1.6;margin-bottom:12px;">Accès Premium : calcule exactement combien de ressources et d'accélérateurs tu as besoin pour former tes troupes.</p>
-        <div style="font-size:.82rem;color:var(--dim);line-height:1.8;">
+        <div style="font-size:.9rem;color:var(--text-dim);line-height:1.6;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--gold-dim);">
+          <strong style="color:var(--gold);">Calcul de Troupes</strong><br>
+          Calcule exactement combien de ressources et d'accélérateurs tu as besoin pour former tes troupes.
+        </div>
+        <div style="font-size:.82rem;color:var(--dim);line-height:1.8;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--gold-dim);">
           ✅ Infanterie, Cavalerie, Archers, Bêtes<br>
-          ✅ Niveaux T1 à T7<br>
-          ✅ Bonus de réduction (recherche)<br>
+          ✅ Niveaux T1 à T7 • Bonus de réduction (recherche)<br>
           ✅ Calcul des accélérateurs nécessaires
         </div>
-      </div>
-    </div>
-
-    <!-- Événement -->
-    <div class="clash-panel">
-      <div class="clash-ph"><span>👑</span><h3>Événement — Clash des Tribus</h3></div>
-      <div class="clash-pb">
-        <p style="font-size:.9rem;color:var(--text-dim);line-height:1.6;margin-bottom:12px;">Calcule tes points d'événement automatiquement selon le temps d'entraînement et ton buff.</p>
-        <div style="font-size:.82rem;color:var(--dim);line-height:1.8;">
-          ✅ Points par minute d'entraînement<br>
-          ✅ Buff de points ajustable (%)<br>
-          ✅ Relié au calculateur de troupes<br>
-          ✅ Durée réelle par casernes
+        <div style="font-size:.9rem;color:var(--text-dim);line-height:1.6;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--gold-dim);">
+          <strong style="color:var(--gold);">👑 Événement Clash</strong><br>
+          Calcule tes points d'événement automatiquement selon le temps d'entraînement et ton buff.
         </div>
-      </div>
-    </div>
-
-    <!-- Clash Jours -->
-    <div class="clash-panel">
-      <div class="clash-ph"><span>📅</span><h3>Clash des Tribus — Jours 1 à 5</h3></div>
-      <div class="clash-pb">
-        <p style="font-size:.9rem;color:var(--text-dim);line-height:1.6;margin-bottom:12px;">Un calculateur dédié pour chaque jour du Clash avec ses propres mécaniques de points.</p>
+        <div style="font-size:.82rem;color:var(--dim);line-height:1.8;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--gold-dim);">
+          ✅ Points par minute • Buff ajustable (%)<br>
+          ✅ Relié au calculateur • Durée réelle par casernes
+        </div>
+        <div style="font-size:.9rem;color:var(--text-dim);line-height:1.6;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--gold-dim);">
+          <strong style="color:var(--gold);">📅 Clash Jours 1 à 5</strong><br>
+          Un calculateur dédié pour chaque jour du Clash avec ses propres mécaniques de points.
+        </div>
         <div style="font-size:.82rem;color:var(--dim);line-height:1.8;">
           ✅ Jour 1 : Gemmes &amp; Stamina<br>
           ✅ Jour 2 : Accélérateurs &amp; Construction<br>
@@ -1792,6 +1784,13 @@ const TRANSLATIONS = {
     'Jour 3 : Stamina + Recherche + Rech. Avancée': 'Jour 3 : Stamina + Recherche + Rech. Avancée',
     'Jour 4 : Souvenirs (Légendaire/Épique/Rare)': 'Jour 4 : Souvenirs (Légendaire/Épique/Rare)',
     'Jour 5 : Combiné (Formation + Construction + Stamina)': 'Jour 5 : Combiné (Formation + Construction + Stamina)',
+    'Calculateur (premium)': 'Calculateur (premium)',
+    'Calcul de Troupes': 'Calcul de Troupes',
+    '👑 Événement Clash': '👑 Événement Clash',
+    '📅 Clash Jours 1 à 5': '📅 Clash Jours 1 à 5',
+    'Calcule exactement combien de ressources et d\'accélérateurs tu as besoin pour former tes troupes.': 'Calcule exactement combien de ressources et d\'accélérateurs tu as besoin pour former tes troupes.',
+    'Calcule tes points d\'événement automatiquement selon le temps d\'entraînement et ton buff.': 'Calcule tes points d\'événement automatiquement selon le temps d\'entraînement et ton buff.',
+    'Un calculateur dédié pour chaque jour du Clash avec ses propres mécaniques de points.': 'Un calculateur dédié pour chaque jour du Clash avec ses propres mécaniques de points.',
     'Convertisseur Gemmes & Stamina': 'Convertisseur Gemmes & Stamina',
     'Détermine combien de gemmes acheter pour atteindre ton objectif de points avec la stamina.': 'Détermine combien de gemmes acheter pour atteindre ton objectif de points avec la stamina.',
     'Taux : 50 stamina = 25 gemmes': 'Taux : 50 stamina = 25 gemmes',
@@ -2197,6 +2196,13 @@ const TRANSLATIONS = {
     'Jour 3 : Stamina + Recherche + Rech. Avancée': 'Day 3: Stamina + Research + Advanced Research',
     'Jour 4 : Souvenirs (Légendaire/Épique/Rare)': 'Day 4: Mementos (Legendary/Epic/Rare)',
     'Jour 5 : Combiné (Formation + Construction + Stamina)': 'Day 5: Combined (Formation + Construction + Stamina)',
+    'Calculateur (premium)': 'Calculator (premium)',
+    'Calcul de Troupes': 'Troop Calculation',
+    '👑 Événement Clash': '👑 Clash Event',
+    '📅 Clash Jours 1 à 5': '📅 Clash Days 1 to 5',
+    'Calcule exactement combien de ressources et d\'accélérateurs tu as besoin pour former tes troupes.': 'Calculate exactly how many resources and speedups you need to form your troops.',
+    'Calcule tes points d\'événement automatiquement selon le temps d\'entraînement et ton buff.': 'Calculate your event points automatically based on training time and your buff.',
+    'Un calculateur dédié pour chaque jour du Clash avec ses propres mécaniques de points.': 'A dedicated calculator for each day of Clash with its own point mechanics.',
     'Convertisseur Gemmes & Stamina': 'Gems & Stamina Converter',
     'Détermine combien de gemmes acheter pour atteindre ton objectif de points avec la stamina.': 'Determine how many gems to buy to reach your points goal with stamina.',
     'Taux : 50 stamina = 25 gemmes': 'Rate: 50 stamina = 25 gems',
@@ -2619,6 +2625,13 @@ const TRANSLATIONS = {
     'Jour 3 : Stamina + Recherche + Rech. Avancée': 'День 3: Выносливость + Исследование + Продвинутое исследование',
     'Jour 4 : Souvenirs (Légendaire/Épique/Rare)': 'День 4: Памятные вещи (Легендарные/Эпические/Редкие)',
     'Jour 5 : Combiné (Formation + Construction + Stamina)': 'День 5: Комбинированный (Подготовка + Строительство + Выносливость)',
+    'Calculateur (premium)': 'Калькулятор (премиум)',
+    'Calcul de Troupes': 'Расчет войск',
+    '👑 Événement Clash': '👑 Событие Столкновение',
+    '📅 Clash Jours 1 à 5': '📅 Столкновение дни 1-5',
+    'Calcule exactement combien de ressources et d\'accélérateurs tu as besoin pour former tes troupes.': 'Точно определите, сколько ресурсов и ускорителей вам нужно для подготовки свои войск.',
+    'Calcule tes points d\'événement automatiquement selon le temps d\'entraînement et ton buff.': 'Рассчитайте очки события автоматически в зависимости от времени подготовки и вашего баффа.',
+    'Un calculateur dédié pour chaque jour du Clash avec ses propres mécaniques de points.': 'Специализированный калькулятор для каждого дня Столкновения с собственной механикой очков.',
     'Convertisseur Gemmes & Stamina': 'Конвертер драгоценностей и выносливости',
     'Détermine combien de gemmes acheter pour atteindre ton objectif de points avec la stamina.': 'Определите, сколько драгоценностей купить, чтобы достичь вашей цели очков с выносливостью.',
     'Taux : 50 stamina = 25 gemmes': 'Курс: 50 выносливость = 25 драгоценностей',
