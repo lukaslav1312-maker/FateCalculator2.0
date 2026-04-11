@@ -3065,7 +3065,10 @@ function prepareI18nNodes() {
   });
 
   let textNode;
-  while ((textNode = textWalker.nextNode())) {
+  let nodeCount = 0;
+  const maxNodes = 5000; // Limit to prevent performance issues
+  while ((textNode = textWalker.nextNode()) && nodeCount < maxNodes) {
+    nodeCount++;
     const raw = textNode.nodeValue || '';
     const match = raw.match(/^(\s*)(.*?)(\s*)$/s);
     if (!match) continue;
@@ -3098,32 +3101,35 @@ function prepareI18nNodes() {
 
 function updatePageTranslations() {
   i18nIsApplying = true;
-  prepareI18nNodes();
-  const dict = TRANSLATIONS[currentLang] || {};
-  const missing = new Set();
+  try {
+    prepareI18nNodes();
+    const dict = TRANSLATIONS[currentLang] || {};
+    const missing = new Set();
 
-  i18nTextNodes.forEach(entry => {
-    if (!entry || !entry.node || !entry.node.parentElement) return;
-    if (currentLang !== 'fr' && !dict[entry.core] && TRANSLATIONS.fr[entry.core]) {
-      missing.add(entry.core);
+    i18nTextNodes.forEach(entry => {
+      if (!entry || !entry.node || !entry.node.parentElement) return;
+      if (currentLang !== 'fr' && !dict[entry.core] && TRANSLATIONS.fr[entry.core]) {
+        missing.add(entry.core);
+      }
+      const translated = i18nRuntimeMessage(entry.core);
+      entry.node.nodeValue = entry.lead + translated + entry.trail;
+    });
+
+    i18nAttrNodes.forEach(entry => {
+      if (!entry || !entry.el || !entry.el.isConnected) return;
+      if (currentLang !== 'fr' && !dict[entry.source] && TRANSLATIONS.fr[entry.source]) {
+        missing.add(entry.source);
+      }
+      entry.el.setAttribute(entry.attr, i18nRuntimeMessage(entry.source));
+    });
+
+    window.fwMissingTranslations = Array.from(missing);
+    if (missing.size > 0 && currentLang !== 'fr') {
+      console.warn('[i18n] Missing translation keys for', currentLang, ':', missing.size);
     }
-    const translated = i18nRuntimeMessage(entry.core);
-    entry.node.nodeValue = entry.lead + translated + entry.trail;
-  });
-
-  i18nAttrNodes.forEach(entry => {
-    if (!entry || !entry.el || !entry.el.isConnected) return;
-    if (currentLang !== 'fr' && !dict[entry.source] && TRANSLATIONS.fr[entry.source]) {
-      missing.add(entry.source);
-    }
-    entry.el.setAttribute(entry.attr, i18nRuntimeMessage(entry.source));
-  });
-
-  window.fwMissingTranslations = Array.from(missing);
-  if (missing.size > 0 && currentLang !== 'fr') {
-    console.warn('[i18n] Missing translation keys for', currentLang, ':', missing.size);
+  } finally {
+    i18nIsApplying = false;
   }
-  i18nIsApplying = false;
 }
 
 function scheduleI18nRefresh() {
@@ -3166,16 +3172,18 @@ function i18nRuntimeMessage(message) {
   if (currentLang === 'fr') return out;
 
   const dict = TRANSLATIONS[currentLang] || {};
-  // Use target lang dict keys (not FR keys) so strings absent from FR dict still get translated
-  const keys = Object.keys(dict).sort((a, b) => b.length - a.length);
-
-  keys.forEach(key => {
-    if (key.length <= 1) return; // skip single-char keys to avoid false replacements
-    const translated = dict[key];
-    if (!translated || translated === key) return;
-    if (out.includes(key)) out = out.split(key).join(translated);
-  });
-
+  // Simple direct lookup first - most common case
+  if (dict[out]) return dict[out];
+  
+  // Only do substring replacements for longer text (avoid single words being replaced)
+  if (out.length > 20) {
+    const keys = Object.keys(dict).filter(k => k.length > 3).sort((a, b) => b.length - a.length);
+    for (const key of keys) {
+      const translated = dict[key];
+      if (!translated || translated === key) continue;
+      if (out.includes(key)) out = out.split(key).join(translated);
+    }
+  }
   return out;
 }
 
