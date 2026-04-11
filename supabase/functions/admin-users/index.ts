@@ -3,13 +3,15 @@ declare const Deno: {
   serve: (handler: (req: Request) => Response | Promise<Response>) => void;
 };
 
+export {};
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-auth',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
-const ADMIN_PANEL_HASH = Deno.env.get('ADMIN_PANEL_HASH') || '6g58ph';
+const ADMIN_PANEL_HASH = String(Deno.env.get('ADMIN_PANEL_HASH') || '').trim();
 
 function normalizeUserRow(username: string, user: Record<string, unknown>) {
   return {
@@ -26,12 +28,19 @@ function normalizeUserRow(username: string, user: Record<string, unknown>) {
 
 function isAuthorized(req: Request) {
   const provided = req.headers.get('x-admin-auth') || '';
-  return provided === ADMIN_PANEL_HASH;
+  return !!ADMIN_PANEL_HASH && provided === ADMIN_PANEL_HASH;
 }
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS_HEADERS });
+  }
+
+  if (!ADMIN_PANEL_HASH) {
+    return new Response(JSON.stringify({ error: 'ADMIN_PANEL_HASH is not configured on server' }), {
+      status: 500,
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    });
   }
 
   if (!isAuthorized(req)) {

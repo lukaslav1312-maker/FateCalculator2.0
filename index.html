@@ -3220,6 +3220,18 @@ function getSupabaseClient() {
   return supabaseClient;
 }
 
+async function getSupabaseAccessToken() {
+  const client = getSupabaseClient();
+  if (!client) return '';
+  try {
+    const { data, error } = await client.auth.getSession();
+    if (error) return '';
+    return data?.session?.access_token || '';
+  } catch {
+    return '';
+  }
+}
+
 function hasVerifiedSupabaseSession(authResult) {
   const session = authResult?.session || null;
   const user = authResult?.user || session?.user || null;
@@ -3553,12 +3565,16 @@ function startCloudAutoRefresh() {
 }
 
 function getAdminPasswordHash() {
-  return localStorage.getItem(ADMIN_PASSWORD_HASH_KEY) || '6g58ph';
+  const stored = localStorage.getItem(ADMIN_PASSWORD_HASH_KEY) || '';
+  if (stored === '6g58ph') return '';
+  return stored;
 }
 
-/* Force la synchronisation du hash admin avec le code source */
-(function syncAdminHash() {
-  localStorage.setItem(ADMIN_PASSWORD_HASH_KEY, '6g58ph');
+/* Nettoie l'ancien hash admin par défaut (insecure) */
+(function cleanupLegacyAdminHash() {
+  if (localStorage.getItem(ADMIN_PASSWORD_HASH_KEY) === '6g58ph') {
+    localStorage.removeItem(ADMIN_PASSWORD_HASH_KEY);
+  }
 })();
 
 function ensureAdminPasswordConfigured() {
@@ -7480,11 +7496,17 @@ checkAuth();
     }
 
     try {
+        var accessToken = await getSupabaseAccessToken();
+        if (!accessToken) {
+          alert('Session expirée. Reconnectez-vous avant d\'ouvrir le portail Stripe.');
+          return;
+        }
+
       var response = await fetch(SUPABASE_URL + '/functions/v1/create-stripe-portal-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + accessToken,
           'apikey': SUPABASE_ANON_KEY
         },
         body: JSON.stringify({ username: currentUser })
@@ -7594,14 +7616,20 @@ checkAuth();
         '<div style="font-family:\'Cinzel\',serif;color:var(--gold,#c8942a);font-size:1rem;letter-spacing:.12em;text-align:center;">Vérification du paiement…</div>';
       document.body.appendChild(overlay);
 
-      fetch(SUPABASE_URL + '/functions/v1/verify-stripe-session', {
-        method:  'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-          'apikey':        SUPABASE_ANON_KEY
-        },
-        body: JSON.stringify({ session_id: sessionId, username: pending.user, expected_plan: pending.plan })
+      getSupabaseAccessToken()
+      .then(function(accessToken) {
+        if (!accessToken) {
+          throw new Error('Session utilisateur expirée');
+        }
+        return fetch(SUPABASE_URL + '/functions/v1/verify-stripe-session', {
+          method:  'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': 'Bearer ' + accessToken,
+            'apikey':        SUPABASE_ANON_KEY
+          },
+          body: JSON.stringify({ session_id: sessionId, username: pending.user, expected_plan: pending.plan })
+        });
       })
       .then(function (res) { return res.json(); })
       .then(function (result) {
@@ -7611,14 +7639,14 @@ checkAuth();
           activatePremiumLocally(result.plan, !!result.isLifetime, result.renewsAt || null, result.email || null);
           clearPendingStripeReturn();
         } else {
-          alert('\u274C Vérification du paiement échouée : ' + (result.error || 'Erreur inconnue') + '\nSi vous avez bien payé, contactez le support.');
+          alert('\u274C Vérification du paiement échouée : ' + (result.error || 'Erreur inconnue') + '\nSi vous avez bien payé, reconnectez-vous puis réessayez.');
         }
       })
       .catch(function (err) {
         var ov = document.getElementById('stripeVerifyOverlay');
         if (ov) ov.remove();
         console.error('Stripe verification request failed:', err);
-        alert('Impossible de vérifier le paiement pour le moment. Aucun accès Premium n\'a été activé automatiquement.');
+        alert('Impossible de vérifier le paiement pour le moment. Reconnectez-vous puis réessayez.');
       });
     }
   })();

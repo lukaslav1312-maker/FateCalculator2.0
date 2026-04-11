@@ -27,7 +27,7 @@ token_verifications = 1000
 token_refresh = 2000
 
 [functions.verify-stripe-session]
-verify_jwt = false
+verify_jwt = true
 
 [functions.stripe-webhook]
 verify_jwt = false
@@ -36,4 +36,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.create-stripe-portal-session]
-verify_jwt = false
+verify_jwt = true
