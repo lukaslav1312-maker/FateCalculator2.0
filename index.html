@@ -647,8 +647,8 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
         </div>
 
         <div style="margin-bottom:14px;">
-          <label style="display:block;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.15em;color:var(--dim);text-transform:uppercase;margin-bottom:6px;">Pseudo ou email</label>
-          <input type="text" id="loginUsername" placeholder="Ton pseudo ou ton email" autocomplete="username"
+          <label style="display:block;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.15em;color:var(--dim);text-transform:uppercase;margin-bottom:6px;">Pseudo</label>
+          <input type="text" id="loginUsername" placeholder="Ton pseudo" autocomplete="username"
             onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()"
             style="width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:3px;color:var(--white);font-family:'Crimson Pro',serif;font-size:1rem;padding:10px 12px;outline:none;box-sizing:border-box;transition:border-color .2s;">
         </div>
@@ -1959,8 +1959,8 @@ const TRANSLATIONS = {
     'Supprimer mon compte': 'Supprimer mon compte',
     'Connexion': 'Connexion',
     'Comptes enregistrés': 'Comptes enregistrés',
-    'Pseudo ou email': 'Pseudo ou email',
-    'Ton pseudo ou ton email': 'Ton pseudo ou ton email',
+    'Pseudo ou email': 'Pseudo',
+    'Ton pseudo ou ton email': 'Ton pseudo',
     'Se souvenir de moi': 'Se souvenir de moi',
     '3 à 20 caractères': '3 à 20 caractères',
     'Données sauvegardées localement · Chaque compte est isolé': 'Données sauvegardées localement · Chaque compte est isolé',
@@ -2263,8 +2263,8 @@ const TRANSLATIONS = {
     'Supprimer mon compte': 'Delete my account',
     'Connexion': 'Login',
     'Comptes enregistrés': 'Saved accounts',
-    'Pseudo ou email': 'Username or email',
-    'Ton pseudo ou ton email': 'Your username or your email',
+    'Pseudo ou email': 'Username',
+    'Ton pseudo ou ton email': 'Your username',
     'Se souvenir de moi': 'Remember me',
     '3 à 20 caractères': '3 to 20 characters',
     'Données sauvegardées localement · Chaque compte est isolé': 'Data saved locally · Each account is isolated',
@@ -2684,8 +2684,8 @@ const TRANSLATIONS = {
     'Supprimer mon compte': 'Удалить мой аккаунт',
     'Connexion': 'Вход',
     'Comptes enregistrés': 'Сохраненные аккаунты',
-    'Pseudo ou email': 'Ник или email',
-    'Ton pseudo ou ton email': 'Ваш ник или email',
+    'Pseudo ou email': 'Ник',
+    'Ton pseudo ou ton email': 'Ваш ник',
     'Se souvenir de moi': 'Запомнить меня',
     '3 à 20 caractères': 'От 3 до 20 символов',
     'Données sauvegardées localement · Chaque compte est isolé': 'Данные сохраняются локально · Каждый аккаунт изолирован',
@@ -3915,6 +3915,7 @@ async function login() {
   const password = document.getElementById('loginPassword').value;
   hideMsg('loginError');
   if (!username || !password) { showError('loginError', '⚠ Veuillez remplir tous les champs.'); return; }
+  if (isEmailLike(username)) { showError('loginError', '✕ Connexion par pseudo uniquement.'); return; }
   const users = getUsersStore();
   // Vérification compte admin
   if (username === ADMIN_USERNAME) {
@@ -3932,11 +3933,11 @@ async function login() {
 
   const client = getSupabaseClient();
   if (client) {
-    if (!isEmailLike(username) && !userEntry) {
+    if (!userEntry) {
       await syncUsersFromCloud({ username });
       userEntry = getUserEntryByIdentifier(username);
     }
-    const loginEmail = normalizeEmail(isEmailLike(username) ? username : userEntry?.user?.email);
+    const loginEmail = normalizeEmail(userEntry?.user?.email);
     if (!loginEmail) { showError('loginError', '✕ Email introuvable pour ce compte.'); return; }
     const { data, error } = await client.auth.signInWithPassword({ email: loginEmail, password });
     if (error) {
