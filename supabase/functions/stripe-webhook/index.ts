@@ -75,7 +75,7 @@ async function patchUserPremium(
   serviceKey: string,
   username: string,
   premium: Record<string, unknown>,
-): Promise<void> {
+): Promise<boolean> {
   const res = await fetch(
     `${supabaseUrl}/rest/v1/fw_users?username=eq.${encodeURIComponent(username)}`,
     {
@@ -84,14 +84,21 @@ async function patchUserPremium(
         'Content-Type':  'application/json',
         'Authorization': `Bearer ${serviceKey}`,
         'apikey':        serviceKey,
-        'Prefer':        'return=minimal',
+        'Prefer':        'return=representation',
       },
       body: JSON.stringify({ premium }),
     },
   );
   if (!res.ok) {
     console.error('patchUserPremium error:', res.status, await res.text().catch(() => ''));
+    return false;
   }
+  const rows = await res.json().catch(() => []);
+  if (!Array.isArray(rows) || rows.length === 0) {
+    console.error('patchUserPremium warning: no matching fw_users row for username', username);
+    return false;
+  }
+  return true;
 }
 
 async function findUserByCustomerId(
@@ -171,13 +178,13 @@ Deno.serve(async (req: Request) => {
         const username = session.client_reference_id as string | undefined;
         if (!username || session.payment_status !== 'paid') break;
 
-        const plan        = planFromAmount(session.amount_total ?? 0);
+        const plan        = planFromAmount(Number(session.amount_subtotal ?? session.amount_total ?? 0));
         const isLifetime  = plan === 'lifetime';
         const renewsAt    = isLifetime ? null : Date.now() + getPlanDurationMs(plan);
         const email       = session.customer_details?.email ?? null;
         const customerId  = session.customer ?? null;
 
-        await patchUserPremium(supabaseUrl, supabaseServiceKey, username, {
+        const updated = await patchUserPremium(supabaseUrl, supabaseServiceKey, username, {
           active:             true,
           lifetime:           isLifetime,
           renewsAt,
@@ -187,7 +194,9 @@ Deno.serve(async (req: Request) => {
           stripeCustomerId:   customerId,
           data: { email, plan, paymentMethod: 'stripe', date: new Date().toISOString() },
         });
-        console.log(`Premium activated for user "${username}" (${plan})`);
+        if (updated) {
+          console.log(`Premium activated for user "${username}" (${plan})`);
+        }
         break;
       }
 
@@ -197,7 +206,7 @@ Deno.serve(async (req: Request) => {
         const username   = await findUserByCustomerId(supabaseUrl, supabaseServiceKey, customerId);
         if (!username) break;
 
-        await patchUserPremium(supabaseUrl, supabaseServiceKey, username, {
+        const updated = await patchUserPremium(supabaseUrl, supabaseServiceKey, username, {
           active:    false,
           lifetime:  false,
           renewsAt:  null,
@@ -205,7 +214,9 @@ Deno.serve(async (req: Request) => {
           cancelled: true,
           data: { plan: null, paymentMethod: 'stripe', cancelDate: new Date().toISOString() },
         });
-        console.log(`Premium cancelled for user "${username}"`);
+        if (updated) {
+          console.log(`Premium cancelled for user "${username}"`);
+        }
         break;
       }
 
@@ -220,13 +231,15 @@ Deno.serve(async (req: Request) => {
           ? (sub.current_period_end as number) * 1000
           : null;
 
-        await patchUserPremium(supabaseUrl, supabaseServiceKey, username, {
+        const updated = await patchUserPremium(supabaseUrl, supabaseServiceKey, username, {
           active:           isActive,
           renewsAt:         currentPeriodEnd,
           cancelAt:         sub.cancel_at ? (sub.cancel_at as number) * 1000 : null,
           cancelRequestedAt: sub.cancel_at ? Date.now() : null,
         });
-        console.log(`Premium updated for user "${username}" (active=${isActive})`);
+        if (updated) {
+          console.log(`Premium updated for user "${username}" (active=${isActive})`);
+        }
         break;
       }
 

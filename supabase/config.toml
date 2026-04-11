@@ -11,7 +11,7 @@ additional_redirect_urls = ["https://fate-calculator2-0.vercel.app"]
 
 [auth.email]
 enable_signup = true
-enable_confirmations = true
+enable_confirmations = false
 secure_password_change = true
 max_frequency = "1s"
 otp_length = 8
@@ -33,4 +33,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.admin-users]
+verify_jwt = false
+
+[functions.create-stripe-portal-session]
 verify_jwt = false

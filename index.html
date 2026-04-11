@@ -570,23 +570,6 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
   <div class="ao-spinner"></div>
 </div>
 
-<!-- ══ EMAIL VERIFICATION SUCCESS ══ -->
-<div id="emailVerificationSuccess" class="page-content" style="min-height:100vh;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(64,192,192,.14) 0%, transparent 70%);padding:24px;">
-  <div style="width:100%;max-width:520px;background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);text-align:center;">
-    <div style="padding:28px 24px 18px;background:linear-gradient(180deg, rgba(64,192,192,.14), rgba(64,192,192,.04));border-bottom:1px solid var(--border);">
-      <div style="font-size:3.1rem;line-height:1;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(64,192,192,.35));">✅</div>
-      <div style="font-family:'Cinzel Decorative',serif;color:var(--teal-lt);font-size:1.45rem;letter-spacing:.04em;">Verification Reussie</div>
-    </div>
-    <div style="padding:24px;">
-      <p style="font-size:1rem;line-height:1.7;color:var(--text);margin-bottom:12px;">Ton adresse email a bien ete confirmee.</p>
-      <p style="font-size:.9rem;line-height:1.7;color:var(--dim);margin-bottom:22px;">Tu peux maintenant te connecter a ton compte Fate War.</p>
-      <button onclick="dismissEmailVerificationSuccess()" style="padding:12px 22px;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:3px;color:#0a0b0f;font-family:'Cinzel',serif;font-size:.82rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 20px rgba(200,148,42,.25);">
-        Se connecter
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- ══ MODAL PROFIL ══ -->
 <div id="profileModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:28px;width:100%;max-width:420px;margin:20px;position:relative;">
@@ -655,11 +638,6 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
       <div id="formLogin" style="padding:24px;">
         <div id="loginError" style="background:rgba(160,48,48,.15);border:1px solid rgba(160,48,48,.4);border-radius:3px;color:#e08080;font-size:.85rem;padding:10px 14px;margin-bottom:16px;display:none;text-align:center;"></div>
         <div id="loginNotice" style="background:rgba(42,122,122,.15);border:1px solid var(--teal);border-radius:3px;color:var(--teal-lt);font-size:.85rem;padding:10px 14px;margin-bottom:16px;display:none;text-align:center;"></div>
-        <div id="resendVerificationWrap" style="display:none;margin:-4px 0 16px;text-align:center;">
-          <button id="resendVerificationBtn" onclick="resendVerificationEmail()" style="padding:8px 16px;background:rgba(42,122,122,.18);border:1px solid var(--teal);border-radius:3px;color:var(--teal-lt);font-family:'Cinzel',serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .15s;">
-            Renvoyer l'email de confirmation
-          </button>
-        </div>
 
         <!-- Sélection de compte existant -->
         <div id="savedAccountsSection" style="margin-bottom:16px;display:none;">
@@ -3247,34 +3225,11 @@ function getSupabaseClient() {
 function hasVerifiedSupabaseSession(authResult) {
   const session = authResult?.session || null;
   const user = authResult?.user || session?.user || null;
-  const confirmedAt = user?.email_confirmed_at || user?.confirmed_at || '';
-  return !!(session && user && confirmedAt);
+  return !!(session && user);
 }
 
 function canUseLocalOnlyAuth(userEntry) {
   return !!(userEntry && userEntry.user && !userEntry.user.authUserId && userEntry.user.localOnlyAuth === true);
-}
-
-function getEmailVerificationRedirectUrl() {
-  const publicUrl = String(APP_PUBLIC_URL || '').trim().replace(/\/$/, '');
-
-  try {
-    const current = new URL(window.location.href);
-    const isLocalOrigin =
-      current.protocol === 'file:' ||
-      current.hostname === 'localhost' ||
-      current.hostname === '127.0.0.1' ||
-      current.hostname === '0.0.0.0';
-
-    const targetBase = isLocalOrigin
-      ? publicUrl
-      : `${current.origin}${current.pathname}`;
-
-    return `${String(targetBase || publicUrl).replace(/\/$/, '')}?email_confirm=1`;
-  } catch (err) {
-    console.error('getEmailVerificationRedirectUrl failed:', err);
-    return `${publicUrl}?email_confirm=1`;
-  }
 }
 
 function getAdminApiAuth() {
@@ -3795,77 +3750,6 @@ function hideMsg(id) {
   if (el) el.style.display = 'none';
 }
 
-function setResendVerificationTarget(identifier = '') {
-  const wrap = document.getElementById('resendVerificationWrap');
-  const btn = document.getElementById('resendVerificationBtn');
-  if (!wrap || !btn) return;
-  const value = String(identifier || '').trim();
-  btn.dataset.identifier = value;
-  wrap.style.display = value ? 'block' : 'none';
-}
-
-async function resendVerificationEmail() {
-  const btn = document.getElementById('resendVerificationBtn');
-  const identifier = String(btn?.dataset.identifier || document.getElementById('loginUsername')?.value || '').trim();
-  const client = getSupabaseClient();
-  if (!client) {
-    showError('loginError', '✕ Supabase n\'est pas configuré.');
-    return;
-  }
-
-  const email = await resolveResendTargetEmail(identifier);
-  if (!email) {
-    showError('loginError', '✕ Email introuvable pour renvoyer la confirmation.');
-    return;
-  }
-  const maskedEmail = maskEmail(email);
-  const loginInput = document.getElementById('loginUsername');
-  if (loginInput) loginInput.value = email;
-
-  hideMsg('loginError');
-  hideMsg('loginNotice');
-  if (btn) {
-    btn.disabled = true;
-    btn.style.opacity = '0.65';
-    btn.style.cursor = 'not-allowed';
-  }
-  showNotice('loginNotice', `⏳ Envoi de l'email de confirmation vers ${maskedEmail}...`);
-
-  try {
-    const { error } = await client.auth.resend({
-      type: 'signup',
-      email,
-      options: {
-        emailRedirectTo: getEmailVerificationRedirectUrl()
-      }
-    });
-
-    if (error) {
-      hideMsg('loginNotice');
-      showError('loginError', getFriendlyResendErrorMessage(error));
-      return;
-    }
-
-    showNotice('loginNotice', `✔ Email de confirmation renvoyé vers ${maskedEmail}. Vérifie aussi Spam/Promotions.`);
-  } catch (err) {
-    console.error('resendVerificationEmail failed:', err);
-    showError('loginError', '✕ Impossible de renvoyer l\'email de confirmation.');
-  } finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.style.opacity = '1';
-      btn.style.cursor = 'pointer';
-    }
-  }
-}
-
-function setEmailVerificationSuccessVisible(visible) {
-  const page = document.getElementById('emailVerificationSuccess');
-  if (!page) return;
-  page.style.display = visible ? 'flex' : 'none';
-  page.classList.toggle('active', visible);
-}
-
 function getFriendlyAuthErrorMessage(error, mode = 'login') {
   const code = String(error?.code || '').toLowerCase();
   const raw = String(error?.message || '');
@@ -3879,8 +3763,8 @@ function getFriendlyAuthErrorMessage(error, mode = 'login') {
 
   if (isEmailNotConfirmed) {
     return mode === 'login'
-      ? '⚠ Vérifie ton email et confirme ton compte avant de te connecter.'
-      : '⚠ Vérifie ton email pour confirmer le compte.';
+      ? '✕ Connexion impossible pour ce compte.'
+      : '✕ Inscription impossible pour ce compte.';
   }
 
   return `✕ ${raw || 'Erreur de connexion.'}`;
@@ -3910,69 +3794,6 @@ function getFriendlyRegisterErrorMessage(error) {
   return `✕ ${raw || 'Erreur d\'inscription.'}`;
 }
 
-function getPendingVerificationUserEntry(identifier) {
-  const normalized = normalizeEmail(identifier);
-  const users = getUsersStore();
-  const match = Object.entries(users).find(([username, user]) =>
-    user &&
-    user.requiresEmailVerification === true &&
-    (username === identifier || normalizeEmail(user.email) === normalized)
-  );
-  return match ? { username: match[0], user: match[1] } : null;
-}
-
-function getFriendlyResendErrorMessage(error) {
-  const code = String(error?.code || '').toLowerCase();
-  const raw = String(error?.message || '');
-  const msg = raw.toLowerCase();
-
-  if (isRegisterRateLimitedError(error)) {
-    return '⚠ Trop de tentatives. Attends environ 60 secondes avant de renvoyer un email.';
-  }
-
-  if (
-    code.includes('not_found') ||
-    msg.includes('user not found') ||
-    msg.includes('already confirmed')
-  ) {
-    return '⚠ Impossible de renvoyer: compte introuvable ou déjà confirmé.';
-  }
-
-  return `✕ ${raw || 'Erreur lors du renvoi de l\'email.'}`;
-}
-
-async function resolveResendTargetEmail(identifier) {
-  const id = String(identifier || '').trim();
-  if (!id) return '';
-  if (isEmailLike(id)) return normalizeEmail(id);
-
-  let userEntry = getUserEntryByIdentifier(id);
-  if (userEntry?.user?.email) return normalizeEmail(userEntry.user.email);
-
-  const client = getSupabaseClient();
-  if (client) {
-    try {
-      await syncUsersFromCloud({ username: id });
-      userEntry = getUserEntryByIdentifier(id);
-      if (userEntry?.user?.email) return normalizeEmail(userEntry.user.email);
-    } catch (err) {
-      console.error('resolveResendTargetEmail failed:', err);
-    }
-  }
-
-  return '';
-}
-
-function maskEmail(email) {
-  const value = normalizeEmail(email);
-  const parts = value.split('@');
-  if (parts.length !== 2) return value;
-  const local = parts[0];
-  const domain = parts[1];
-  if (local.length <= 2) return `${local[0] || '*'}*@${domain}`;
-  return `${local.slice(0, 2)}***@${domain}`;
-}
-
 function isRegisterRateLimitedError(error) {
   const code = String(error?.code || '').toLowerCase();
   const raw = String(error?.message || '');
@@ -3999,7 +3820,6 @@ function switchAuthTab(tab) {
   tr.style.color = isLogin ? 'var(--dim)' : 'var(--gold-lt)';
   tr.style.background = isLogin ? 'transparent' : 'rgba(200,148,42,.08)';
   hideMsg('loginError'); hideMsg('loginNotice'); hideMsg('registerError'); hideMsg('registerSuccess');
-  setResendVerificationTarget('');
 }
 
 function buildSavedAccounts() {
@@ -4045,7 +3865,6 @@ function quickLogin(username) {
 }
 
 function showLoginPage() {
-  setEmailVerificationSuccessVisible(false);
   setLoginPageVisible(true);
   document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
   document.getElementById('login').classList.add('active');
@@ -4056,61 +3875,6 @@ function showLoginPage() {
   buildSavedAccounts();
   const _ov2 = document.getElementById('authOverlay');
   if (_ov2) { _ov2.classList.add('hidden'); setTimeout(()=>{ _ov2.style.display='none'; }, 350); }
-}
-
-function showEmailVerificationSuccessPage() {
-  setLoginPageVisible(false);
-  document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-  document.getElementById('navButtons').style.display = 'none';
-  document.getElementById('userInfo').style.display = 'none';
-  closeSupportModal();
-  setEmailVerificationSuccessVisible(true);
-
-  const overlay = document.getElementById('authOverlay');
-  if (overlay) {
-    overlay.classList.add('hidden');
-    setTimeout(() => { overlay.style.display = 'none'; }, 350);
-  }
-}
-
-function dismissEmailVerificationSuccess() {
-  consumeEmailVerificationNotice();
-  showLoginPage();
-  switchAuthTab('login');
-  document.getElementById('loginUsername')?.focus();
-}
-
-function hasPendingEmailVerificationNotice() {
-  return sessionStorage.getItem('fw_email_verification_confirmed') === '1';
-}
-
-function consumeEmailVerificationNotice() {
-  if (!hasPendingEmailVerificationNotice()) return false;
-  sessionStorage.removeItem('fw_email_verification_confirmed');
-  return true;
-}
-
-function captureEmailVerificationReturn() {
-  try {
-    const searchParams = new URLSearchParams(window.location.search || '');
-    const hashParams = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
-    const type = searchParams.get('type') || hashParams.get('type') || '';
-    const hasVerificationToken =
-      searchParams.has('token_hash') ||
-      hashParams.has('access_token') ||
-      hashParams.has('token_hash');
-    const explicitConfirm = searchParams.get('email_confirm') === '1';
-
-    if (!explicitConfirm && !(type === 'signup' && hasVerificationToken)) return;
-
-    sessionStorage.setItem('fw_email_verification_confirmed', '1');
-
-    if (window.history && window.history.replaceState) {
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  } catch (err) {
-    console.error('captureEmailVerificationReturn failed:', err);
-  }
 }
 
 async function restoreCurrentUserFromSession() {
@@ -4183,18 +3947,10 @@ async function login() {
         saveUsersStore(users);
         currentUser = userEntry.username;
       } else {
-        const friendlyError = getFriendlyAuthErrorMessage(error, 'login');
-        if (friendlyError.includes('Vérifie ton email')) setResendVerificationTarget(loginEmail);
         showError('loginError', getFriendlyAuthErrorMessage(error, 'login'));
         return;
       }
     } else {
-      if (!hasVerifiedSupabaseSession(data)) {
-        try { await client.auth.signOut(); } catch (err) { console.error('signOut after unverified login failed:', err); }
-        setResendVerificationTarget(loginEmail);
-        showError('loginError', '⚠ Vérifie ton email et confirme ton compte avant de te connecter.');
-        return;
-      }
       await syncUsersFromCloud({ authUserId: data.user?.id, email: loginEmail, username: userEntry?.username || username });
       const authEntry = getUserEntryByAuthIdentity(data.user?.id, loginEmail) || userEntry;
       if (!authEntry) { showError('loginError', '✕ Compte introuvable. Veuillez vous reconnecter.'); return; }
@@ -4259,29 +4015,16 @@ async function register() {
 
   let authUserId = '';
   if (client) {
-    const emailRedirectTo = getEmailVerificationRedirectUrl();
     const { data, error } = await client.auth.signUp({
       email,
       password,
       options: {
-        data: { username },
-        emailRedirectTo
+        data: { username }
       }
     });
     if (error) {
       if (isRegisterRateLimitedError(error)) {
-        const pendingEntry = getPendingVerificationUserEntry(username) || getPendingVerificationUserEntry(email);
-        if (pendingEntry) {
-          switchAuthTab('login');
-          showNotice('loginNotice', 'Compte déjà créé. Vérifie ton email de confirmation, puis connecte-toi.');
-          document.getElementById('loginUsername').value = pendingEntry.user.email || email;
-          setResendVerificationTarget(pendingEntry.user.email || email);
-          return;
-        }
-        switchAuthTab('login');
-        showNotice('loginNotice', '⚠ Trop de tentatives côté serveur. Attends environ 60 secondes, puis utilise le bouton de renvoi.');
-        document.getElementById('loginUsername').value = email;
-        setResendVerificationTarget(email);
+        showError('registerError', '⚠ Trop de tentatives d\'inscription en peu de temps. Attends environ 60 secondes puis réessaie.');
         return;
       }
       showError('registerError', getFriendlyRegisterErrorMessage(error));
@@ -4289,13 +4032,12 @@ async function register() {
     }
     authUserId = data.user?.id || '';
 
-    users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now(), localOnlyAuth: false, requiresEmailVerification: true };
-    saveUsersStore(users);
+    users[username] = { email, authUserId, password: hashPassword(password), created: Date.now(), lastLogin: Date.now(), localOnlyAuth: false, requiresEmailVerification: false };
+    currentUser = username;
     rememberLocalAccount(username);
-    document.getElementById('loginUsername').value = email;
-    switchAuthTab('login');
-    showNotice('loginNotice', t('Compte créé. Vérifie ton email puis connecte-toi.'));
-    setResendVerificationTarget(email);
+    saveUsersStore(users);
+    localStorage.setItem('fw_current_user', currentUser);
+    showMainApp();
     return;
   }
 
@@ -4334,21 +4076,6 @@ async function logout() {
 
 async function checkAuth() {
   try {
-    captureEmailVerificationReturn();
-
-    if (hasPendingEmailVerificationNotice()) {
-      const client = getSupabaseClient();
-      if (client) {
-        try { await client.auth.signOut(); } catch (err) { console.error('signOut after verification failed:', err); }
-      }
-      currentUser = null;
-      isAdmin = false;
-      localStorage.removeItem('fw_current_user');
-      sessionStorage.removeItem('fw_current_user');
-      showEmailVerificationSuccessPage();
-      return;
-    }
-
     if (sessionStorage.getItem('fw_admin_session') === '1') {
       isAdmin = true;
       currentUser = ADMIN_USERNAME;
@@ -7721,8 +7448,8 @@ checkAuth();
    * 4. Dans chaque Payment Link → Paramètres → URL de confirmation :
    *      {votre-site}?stripe_return=success&session_id={CHECKOUT_SESSION_ID}
    *    → Cela permet la vérification serveur via l'Edge Function.
-   * 5. Pour l'annulation abonnement, configurez le Customer Portal Stripe
-   *    et collez son URL dans STRIPE_CANCEL_URL ci-dessous.
+  * 5. Pour l'annulation abonnement, la session de portail est créée
+  *    côté serveur via l'Edge Function create-stripe-portal-session.
    * 6. Déployez les Edge Functions Supabase :
    *      supabase functions deploy verify-stripe-session
    *      supabase functions deploy stripe-webhook
@@ -7733,15 +7460,14 @@ checkAuth();
     annual:   'https://buy.stripe.com/14A6oIaRq6f63PVdMi3F601',
     lifetime: 'https://buy.stripe.com/00wfZie3CdHy5Y35fM3F602'
   };
-  var STRIPE_CANCEL_URL = 'https://billing.stripe.com/p/login/bpc_1TKJNGJun9ILX8InaipTwuNZ';
 
-  window.openStripeCancelPortal = function () {
+  window.openStripeCancelPortal = async function () {
     if (!currentUser) {
       alert('Connectez-vous pour gérer votre abonnement.');
       return;
     }
-    if (!STRIPE_CANCEL_URL || STRIPE_CANCEL_URL.indexOf('REMPLACEZ_MOI') !== -1) {
-      alert('Lien de gestion Stripe non configuré.');
+    if (!isSupabaseConfigured()) {
+      alert('Configuration Supabase manquante pour ouvrir le portail Stripe.');
       return;
     }
     var users = getUsersStore();
@@ -7750,12 +7476,29 @@ checkAuth();
       alert('Aucun abonnement récurrent à annuler sur ce compte.');
       return;
     }
-    var email = u.premium && u.premium.data && u.premium.data.email ? u.premium.data.email : '';
-    var url = STRIPE_CANCEL_URL;
-    if (email) {
-      url += (url.indexOf('?') === -1 ? '?' : '&') + 'prefilled_email=' + encodeURIComponent(email);
+
+    try {
+      var response = await fetch(SUPABASE_URL + '/functions/v1/create-stripe-portal-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'apikey': SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({ username: currentUser })
+      });
+
+      var result = await response.json().catch(function () { return {}; });
+      if (!response.ok || !result.url) {
+        alert('Impossible d\'ouvrir le portail Stripe: ' + (result.error || 'erreur inconnue') + '.');
+        return;
+      }
+
+      window.open(result.url, '_blank');
+    } catch (error) {
+      console.error('openStripeCancelPortal failed:', error);
+      alert('Impossible de contacter Stripe pour gérer votre abonnement.');
     }
-    window.open(url, '_blank');
   };
 
   window.markStripeCancelAtPeriodEnd = function () {
@@ -7795,10 +7538,13 @@ checkAuth();
     try { pending = JSON.parse(sessionStorage.getItem('fw_pending_premium') || 'null'); } catch (e) {}
     if (!pending || !pending.user) return;
 
-    /* Nettoyer l'URL et la session immédiatement */
-    sessionStorage.removeItem('fw_pending_premium');
+    /* Nettoyer l'URL immédiatement pour éviter les boucles de retour */
     if (window.history && window.history.replaceState) {
       window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    function clearPendingStripeReturn() {
+      sessionStorage.removeItem('fw_pending_premium');
     }
 
     function activatePremiumLocally(plan, isLifetime, renewsAt, email) {
@@ -7824,6 +7570,16 @@ checkAuth();
       setTimeout(function () { alert('\uD83C\uDF89 Paiement confirmé ! Votre accès Premium est maintenant actif.'); }, 300);
     }
 
+    if (!sessionId) {
+      alert('Session Stripe manquante au retour du paiement. Contacte le support.');
+      return;
+    }
+
+    if (!isSupabaseConfigured()) {
+      alert('Configuration Supabase manquante. Impossible de vérifier le paiement.');
+      return;
+    }
+
     /* ── Vérification serveur via Supabase Edge Function ───────────── */
     if (sessionId && isSupabaseConfigured()) {
       /* Overlay de chargement */
@@ -7843,7 +7599,7 @@ checkAuth();
           'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
           'apikey':        SUPABASE_ANON_KEY
         },
-        body: JSON.stringify({ session_id: sessionId, username: pending.user })
+        body: JSON.stringify({ session_id: sessionId, username: pending.user, expected_plan: pending.plan })
       })
       .then(function (res) { return res.json(); })
       .then(function (result) {
@@ -7851,6 +7607,7 @@ checkAuth();
         if (ov) ov.remove();
         if (result.ok) {
           activatePremiumLocally(result.plan, !!result.isLifetime, result.renewsAt || null, result.email || null);
+          clearPendingStripeReturn();
         } else {
           alert('\u274C Vérification du paiement échouée : ' + (result.error || 'Erreur inconnue') + '\nSi vous avez bien payé, contactez le support.');
         }
@@ -7858,23 +7615,9 @@ checkAuth();
       .catch(function (err) {
         var ov = document.getElementById('stripeVerifyOverlay');
         if (ov) ov.remove();
-        console.warn('Stripe edge-function unavailable, using local fallback:', err);
-        /* Fallback : activation locale sans vérification serveur */
-        activatePremiumLocally(
-          pending.plan,
-          pending.plan === 'lifetime',
-          pending.plan === 'lifetime' ? null : (Date.now() + getPlanDurationMs(pending.plan)),
-          pending.email
-        );
+        console.error('Stripe verification request failed:', err);
+        alert('Impossible de vérifier le paiement pour le moment. Aucun accès Premium n\'a été activé automatiquement.');
       });
-    } else {
-      /* Pas de session_id (ancien lien Stripe ou edge function indisponible) → fallback */
-      activatePremiumLocally(
-        pending.plan,
-        pending.plan === 'lifetime',
-        pending.plan === 'lifetime' ? null : (Date.now() + getPlanDurationMs(pending.plan)),
-        pending.email
-      );
     }
   })();
 

@@ -32,6 +32,22 @@ function planFromAmount(amountCents: number): 'monthly' | 'annual' | 'lifetime' 
   return 'lifetime';
 }
 
+function normalizePlan(value: unknown): 'monthly' | 'annual' | 'lifetime' | null {
+  const v = String(value || '').trim().toLowerCase();
+  if (v === 'monthly' || v === 'annual' || v === 'lifetime') return v;
+  return null;
+}
+
+function amountForPlan(plan: 'monthly' | 'annual' | 'lifetime'): number {
+  if (plan === 'monthly') return 500;
+  if (plan === 'annual') return 3000;
+  return 5000;
+}
+
+function isAmountCompatibleWithPlan(plan: 'monthly' | 'annual' | 'lifetime', amountCents: number): boolean {
+  return amountCents === amountForPlan(plan);
+}
+
 Deno.serve(async (req: Request) => {
   // Handle CORS pre-flight
   if (req.method === 'OPTIONS') {
@@ -46,9 +62,10 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { session_id, username } = await req.json() as {
+    const { session_id, username, expected_plan } = await req.json() as {
       session_id?: string;
       username?: string;
+      expected_plan?: string;
     };
 
     if (!session_id || !username) {
@@ -99,7 +116,11 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── 4. Determine plan details ──────────────────────────────────────
-    const plan = planFromAmount(session.amount_total ?? 0);
+    const amountCents = Number(session.amount_subtotal ?? session.amount_total ?? 0);
+    const expectedPlan = normalizePlan(expected_plan);
+    const plan = expectedPlan && isAmountCompatibleWithPlan(expectedPlan, amountCents)
+      ? expectedPlan
+      : planFromAmount(amountCents);
     const isLifetime = plan === 'lifetime';
     const renewsAt   = isLifetime ? null : Date.now() + getPlanDurationMs(plan);
     const email      = session.customer_details?.email ?? null;
@@ -134,7 +155,7 @@ Deno.serve(async (req: Request) => {
             'Content-Type':  'application/json',
             'Authorization': `Bearer ${supabaseServiceKey}`,
             'apikey':        supabaseServiceKey,
-            'Prefer':        'return=minimal',
+            'Prefer':        'return=representation',
           },
           body: JSON.stringify({ premium }),
         },
@@ -142,7 +163,24 @@ Deno.serve(async (req: Request) => {
 
       if (!patchRes.ok) {
         console.error('Supabase PATCH error:', patchRes.status, await patchRes.text().catch(() => ''));
+        return new Response(
+          JSON.stringify({ ok: false, error: 'Failed to persist premium in database' }),
+          { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+        );
       }
+
+      const updatedRows = await patchRes.json().catch(() => []);
+      if (!Array.isArray(updatedRows) || updatedRows.length === 0) {
+        return new Response(
+          JSON.stringify({ ok: false, error: 'User account row not found in fw_users' }),
+          { status: 404, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+        );
+      }
+    } else {
+      return new Response(
+        JSON.stringify({ ok: false, error: 'Supabase persistence is not configured' }),
+        { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+      );
     }
 
     return new Response(
