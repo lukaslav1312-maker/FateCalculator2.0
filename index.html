@@ -2194,6 +2194,13 @@ const TRANSLATIONS = {
     'Accès à vie GRATUIT !': 'Accès à vie GRATUIT !',
     'Toutes les fonctionnalités sont débloquées.': 'Toutes les fonctionnalités sont débloquées.',
     'Accès à vie activé gratuitement !': 'Accès à vie activé gratuitement !'
+    'Tier': 'Tier',
+    'Temps (s)': 'Temps (s)',
+    'Objectif atteignable !': 'Objectif atteignable !',
+    'Seul un admin peut supprimer les paires hero.': 'Seul un admin peut supprimer les paires hero.',
+    'Paiement confirmé ! Votre accès Premium est maintenant actif.': 'Paiement confirmé ! Votre accès Premium est maintenant actif.',
+    'Vous devez être connecté pour activer Premium.': 'Vous devez être connecté pour activer Premium.',
+    'Vous devez avoir un compte et être connecté pour poster une composition.': 'Vous devez avoir un compte et être connecté pour poster une composition.'
   },
   en: {
     'FATE WAR': 'FATE WAR',
@@ -2660,6 +2667,13 @@ const TRANSLATIONS = {
     'Accès à vie GRATUIT !': 'Lifetime access FREE!',
     'Toutes les fonctionnalités sont débloquées.': 'All features are unlocked.',
     'Accès à vie activé gratuitement !': 'Lifetime access activated for free!'
+    'Tier': 'Tier',
+    'Temps (s)': 'Time (s)',
+    'Objectif atteignable !': 'Goal reachable!',
+    'Seul un admin peut supprimer les paires hero.': 'Only an admin can delete hero pairs.',
+    'Paiement confirmé ! Votre accès Premium est maintenant actif.': 'Payment confirmed! Your Premium access is now active.',
+    'Vous devez être connecté pour activer Premium.': 'You must be logged in to activate Premium.',
+    'Vous devez avoir un compte et être connecté pour poster une composition.': 'You must have an account and be logged in to post a composition.'
   },
   ru: {
     'FATE WAR': 'FATE WAR',
@@ -3125,9 +3139,14 @@ const TRANSLATIONS = {
     'Accès à vie GRATUIT !': 'Пожизненный доступ БЕСПЛАТНО!',
     'Toutes les fonctionnalités sont débloquées.': 'Все функции разблокированы.',
     'Accès à vie activé gratuitement !': 'Пожизненный доступ активирован бесплатно!'
+    'Tier': 'Уровень',
+    'Temps (s)': 'Время (с)',
+    'Objectif atteignable !': 'Цель достижима!',
+    'Seul un admin peut supprimer les paires hero.': 'Только администратор может удалять пары героев.',
+    'Paiement confirmé ! Votre accès Premium est maintenant actif.': 'Платеж подтвержден! Ваш доступ Premium теперь активен.',
+    'Vous devez être connecté pour activer Premium.': 'Вы должны быть подключены для активации Premium.',
+    'Vous devez avoir un compte et être connecté pour poster une composition.': 'Вы должны иметь учетную запись и быть подключены для отправки композиции.'
   }
-};
-};
 
 function switchLang(lang, shouldReload = false) {
   if (!TRANSLATIONS[lang]) lang = 'fr';
@@ -7049,7 +7068,7 @@ function loadPairLikes() {
 
 function sharePair(){
   if (!currentUser) {
-    alert('Vous devez avoir un compte et être connecté pour poster une composition.');
+    alert(t('Vous devez avoir un compte et être connecté pour poster une composition.'));
     return;
   }
 
@@ -7231,7 +7250,7 @@ async function deleteSharedPair(pairId){
 
 function deleteSynergyPair(h1, h2){
   if (!isAdmin) {
-    alert('Seul un admin peut supprimer les paires hero.');
+    alert(t('Seul un admin peut supprimer les paires hero.'));
     return;
   }
   if (!confirm('Supprimer cette paire hero ?')) return;
@@ -7739,7 +7758,7 @@ checkAuth();
       saveUsersStore(users);
       if (typeof updatePremiumBadge === 'function') updatePremiumBadge();
       if (typeof refreshSubscriptionTrigger === 'function') refreshSubscriptionTrigger();
-      setTimeout(function () { alert('\uD83C\uDF89 Paiement confirmé ! Votre accès Premium est maintenant actif.'); }, 300);
+      setTimeout(function () { alert(t('Paiement confirmé ! Votre accès Premium est maintenant actif.')); }, 300);
     }
 
     if (!sessionId) {
@@ -7919,7 +7938,7 @@ checkAuth();
     }
 
     if (!currentUser) {
-      alert('Vous devez être connecté pour activer Premium.');
+      alert(t('Vous devez être connecté pour activer Premium.'));
       showLoginPage();
       return;
     }
