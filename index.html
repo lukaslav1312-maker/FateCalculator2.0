@@ -3319,6 +3319,14 @@ function i18nRuntimeMessage(message) {
   const dict = TRANSLATIONS[currentLang] || {};
   // Simple direct lookup first - most common case
   if (dict[out]) return dict[out];
+
+  // Handle labels with emoji/symbol prefixes (e.g. "🏰 Bienvenue").
+  const prefixed = out.match(/^([^\p{L}\p{N}]*)([\s\S]*)$/u);
+  if (prefixed) {
+    const prefix = prefixed[1] || '';
+    const core = (prefixed[2] || '').trim();
+    if (core && dict[core]) return prefix + dict[core];
+  }
   
   // Only do substring replacements for longer text (avoid single words being replaced)
   if (out.length > 20) {
