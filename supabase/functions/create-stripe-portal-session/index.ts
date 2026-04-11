@@ -14,10 +14,40 @@ type PremiumData = {
   active?: boolean;
   lifetime?: boolean;
   stripeCustomerId?: string | null;
+  stripeSessionId?: string | null;
   data?: {
     email?: string | null;
   };
 };
+
+async function patchPremiumData(
+  supabaseUrl: string,
+  serviceKey: string,
+  username: string,
+  premium: PremiumData,
+): Promise<boolean> {
+  const patchRes = await fetch(
+    `${supabaseUrl}/rest/v1/fw_users?username=eq.${encodeURIComponent(username)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${serviceKey}`,
+        apikey: serviceKey,
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify({ premium }),
+    },
+  );
+
+  if (!patchRes.ok) {
+    console.error('patchPremiumData failed:', patchRes.status, await patchRes.text().catch(() => ''));
+    return false;
+  }
+
+  const rows = await patchRes.json().catch(() => [] as Array<Record<string, unknown>>);
+  return Array.isArray(rows) && rows.length > 0;
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -80,7 +110,32 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const customerId = String(premium.stripeCustomerId || '').trim();
+    let customerId = String(premium.stripeCustomerId || '').trim();
+
+    // Backward-compatible repair for older premium rows that missed stripeCustomerId.
+    if (!customerId) {
+      const stripeSessionId = String(premium.stripeSessionId || '').trim();
+      if (stripeSessionId) {
+        const sessionRes = await fetch(
+          `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(stripeSessionId)}`,
+          {
+            headers: { Authorization: `Bearer ${stripeKey}` },
+          },
+        );
+        if (sessionRes.ok) {
+          const sessionJson = await sessionRes.json().catch(() => ({} as Record<string, unknown>));
+          const recovered = String((sessionJson as { customer?: string | null }).customer || '').trim();
+          if (recovered) {
+            customerId = recovered;
+            const updatedPremium: PremiumData = { ...premium, stripeCustomerId: customerId };
+            await patchPremiumData(supabaseUrl, serviceKey, username, updatedPremium);
+          }
+        } else {
+          console.warn('Unable to recover Stripe customer from session:', stripeSessionId);
+        }
+      }
+    }
+
     if (!customerId) {
       return new Response(JSON.stringify({ ok: false, error: 'Stripe customer not linked yet for this account' }), {
         status: 400,
