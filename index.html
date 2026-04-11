@@ -3567,17 +3567,28 @@ function startCloudAutoRefresh() {
 function getAdminPasswordHash() {
   const stored = localStorage.getItem(ADMIN_PASSWORD_HASH_KEY) || '';
   if (stored === '6g58ph') return '';
+  if (stored && stored.length !== 64) return '';
   return stored;
+}
+
+async function hashAdminPassword(password) {
+  const raw = String(password || '');
+  const bytes = new TextEncoder().encode(raw);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest)).map(function(b) {
+    return b.toString(16).padStart(2, '0');
+  }).join('');
 }
 
 /* Nettoie l'ancien hash admin par défaut (insecure) */
 (function cleanupLegacyAdminHash() {
-  if (localStorage.getItem(ADMIN_PASSWORD_HASH_KEY) === '6g58ph') {
+  var stored = localStorage.getItem(ADMIN_PASSWORD_HASH_KEY) || '';
+  if (stored === '6g58ph' || (stored && stored.length !== 64)) {
     localStorage.removeItem(ADMIN_PASSWORD_HASH_KEY);
   }
 })();
 
-function ensureAdminPasswordConfigured() {
+async function ensureAdminPasswordConfigured() {
   if (getAdminPasswordHash()) return true;
   const pwd = prompt('Aucun mot de passe admin configure. Definis-en un nouveau (8+ caracteres).');
   if (!pwd) {
@@ -3588,14 +3599,16 @@ function ensureAdminPasswordConfigured() {
     alert('Mot de passe trop court (minimum 8 caracteres).');
     return false;
   }
-  localStorage.setItem(ADMIN_PASSWORD_HASH_KEY, hashPassword(pwd));
+  const adminHash = await hashAdminPassword(pwd);
+  localStorage.setItem(ADMIN_PASSWORD_HASH_KEY, adminHash);
   alert('Mot de passe admin configure localement. Reconnecte-toi avec ce mot de passe.');
   return true;
 }
 
-function rotateAdminPassword(nextPassword) {
+async function rotateAdminPassword(nextPassword) {
   if (!nextPassword || nextPassword.length < 8) return false;
-  localStorage.setItem(ADMIN_PASSWORD_HASH_KEY, hashPassword(nextPassword));
+  const adminHash = await hashAdminPassword(nextPassword);
+  localStorage.setItem(ADMIN_PASSWORD_HASH_KEY, adminHash);
   return true;
 }
 
@@ -3938,8 +3951,9 @@ async function login() {
   const users = getUsersStore();
   // Vérification compte admin
   if (username === ADMIN_USERNAME) {
-    if (!ensureAdminPasswordConfigured()) { showError('loginError', '⚠ Configure d abord un mot de passe admin.'); return; }
-    if (hashPassword(password) !== getAdminPasswordHash()) { showError('loginError', '✕ Mot de passe admin incorrect.'); return; }
+    if (!await ensureAdminPasswordConfigured()) { showError('loginError', '⚠ Configure d abord un mot de passe admin.'); return; }
+    const enteredAdminHash = await hashAdminPassword(password);
+    if (enteredAdminHash !== getAdminPasswordHash()) { showError('loginError', '✕ Mot de passe admin incorrect.'); return; }
     isAdmin = true;
     currentUser = ADMIN_USERNAME;
     sessionStorage.setItem('fw_admin_session', '1');
