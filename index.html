@@ -3335,6 +3335,94 @@ function i18nRuntimeMessage(message) {
   return out;
 }
 
+const COMMENT_TRANSLATION_CACHE_KEY = 'fw_comment_translation_cache_v1';
+let commentTranslationCache = null;
+
+function getCommentTranslationCache(){
+  if (commentTranslationCache) return commentTranslationCache;
+  try {
+    const parsed = JSON.parse(localStorage.getItem(COMMENT_TRANSLATION_CACHE_KEY) || '{}');
+    commentTranslationCache = parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    commentTranslationCache = {};
+  }
+  return commentTranslationCache;
+}
+
+function saveCommentTranslationCache(){
+  try {
+    const cache = getCommentTranslationCache();
+    const entries = Object.entries(cache);
+    if (entries.length > 300) {
+      const trimmed = Object.fromEntries(entries.slice(entries.length - 300));
+      commentTranslationCache = trimmed;
+    }
+    localStorage.setItem(COMMENT_TRANSLATION_CACHE_KEY, JSON.stringify(commentTranslationCache));
+  } catch {}
+}
+
+function getAutoTranslateTargetLang(lang){
+  if (lang === 'en') return 'en';
+  if (lang === 'ru') return 'ru';
+  return 'fr';
+}
+
+async function autoTranslateCommunityText(text, targetLang){
+  const source = String(text || '').trim();
+  if (!source || targetLang === 'fr') return source;
+
+  const cache = getCommentTranslationCache();
+  const cacheKey = `${targetLang}::${source}`;
+  if (cache[cacheKey]) return cache[cacheKey];
+
+  const inline = i18nRuntimeMessage(source);
+  if (inline && inline !== source) {
+    cache[cacheKey] = inline;
+    saveCommentTranslationCache();
+    return inline;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
+  try {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(source)}&langpair=fr|${targetLang}`;
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) return source;
+    const data = await res.json();
+    const translated = String(data?.responseData?.translatedText || '').trim();
+    if (!translated) return source;
+    cache[cacheKey] = translated;
+    saveCommentTranslationCache();
+    return translated;
+  } catch {
+    return source;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function translateSharedPairDescriptions(container, renderToken){
+  if (!container || currentLang === 'fr') return;
+  const targetLang = getAutoTranslateTargetLang(currentLang);
+  const nodes = Array.from(container.querySelectorAll('.shared-pair-desc'));
+  if (!nodes.length) return;
+
+  const jobs = nodes.map(async (node) => {
+    const encodedSrc = node.getAttribute('data-src') || '';
+    const source = encodedSrc ? decodeURIComponent(encodedSrc) : (node.textContent || '').trim();
+    if (!source) return null;
+    const translated = await autoTranslateCommunityText(source, targetLang);
+    return { node, translated };
+  });
+
+  const results = await Promise.all(jobs);
+  if (renderToken !== sharedPairRenderToken) return;
+  results.forEach((entry) => {
+    if (!entry || !entry.node || !entry.node.isConnected) return;
+    entry.node.textContent = entry.translated;
+  });
+}
+
 const nativeAlert = window.alert.bind(window);
 const nativeConfirm = window.confirm.bind(window);
 
@@ -6853,8 +6941,10 @@ function tick(el,tlId,barId,pctId){
    Score = Stats combinées + Réduction dégâts + Utilité contextuelle
 ═══════════════════════════════════════════ */
 const SYNERGY_PAIRS = [];
+let sharedPairRenderToken = 0;
 
 function renderSynergyPairs(){
+  const renderToken = ++sharedPairRenderToken;
   const container = document.getElementById('synergyPairsList');
   const troopFilter = document.getElementById('filterTroopType').value;
   const contextFilter = document.getElementById('filterContext')?.value || '';
@@ -6957,7 +7047,7 @@ function renderSynergyPairs(){
             </div>
           </div>
           <div class="shared-pair-user">${t('Posté par')} <strong class="no-i18n" data-no-translate>${escapeHtml(pair.user || t('Anonyme'))}</strong> · ${new Date(pair.timestamp).toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : currentLang === 'en' ? 'en-US' : 'fr-FR')}</div>
-          ${pair.description ? `<div class="shared-pair-desc">${escapeHtml(pair.description)}</div>` : ''}
+          ${pair.description ? `<div class="shared-pair-desc" data-src="${encodeURIComponent(pair.description)}">${escapeHtml(pair.description)}</div>` : ''}
           <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
             <span style="font-size:0.8rem;color:#7ddc8a;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.35);padding:2px 8px;border-radius:999px;">👍 ${t('Likes')}: ${likesCount}</span>
             <span style="font-size:0.8rem;color:#ff8b8b;background:rgba(244,67,54,.12);border:1px solid rgba(244,67,54,.35);padding:2px 8px;border-radius:999px;">👎 ${t('Dislikes')}: ${dislikesCount}</span>
@@ -6974,6 +7064,7 @@ function renderSynergyPairs(){
   const content = synergyHTML + communityHTML;
   container.innerHTML = content || `<div style="text-align:center;padding:40px;color:var(--dim);">${t('Aucune paire ne correspond aux filtres sélectionnés.')}</div>`;
   scheduleI18nRefresh();
+  translateSharedPairDescriptions(container, renderToken);
 }
 
 function getVoterKey() {
