@@ -6957,7 +6957,7 @@ function renderSynergyPairs(){
             </div>
           </div>
           <div class="shared-pair-user">${t('Posté par')} <strong class="no-i18n" data-no-translate>${escapeHtml(pair.user || t('Anonyme'))}</strong> · ${new Date(pair.timestamp).toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : currentLang === 'en' ? 'en-US' : 'fr-FR')}</div>
-          ${pair.description ? `<div class="shared-pair-desc no-i18n" data-no-translate>${escapeHtml(pair.description)}</div>` : ''}
+          ${pair.description ? `<div class="shared-pair-desc">${escapeHtml(pair.description)}</div>` : ''}
           <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
             <span style="font-size:0.8rem;color:#7ddc8a;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.35);padding:2px 8px;border-radius:999px;">👍 ${t('Likes')}: ${likesCount}</span>
             <span style="font-size:0.8rem;color:#ff8b8b;background:rgba(244,67,54,.12);border:1px solid rgba(244,67,54,.35);padding:2px 8px;border-radius:999px;">👎 ${t('Dislikes')}: ${dislikesCount}</span>
@@ -6973,6 +6973,7 @@ function renderSynergyPairs(){
 
   const content = synergyHTML + communityHTML;
   container.innerHTML = content || `<div style="text-align:center;padding:40px;color:var(--dim);">${t('Aucune paire ne correspond aux filtres sélectionnés.')}</div>`;
+  scheduleI18nRefresh();
 }
 
 function getVoterKey() {
