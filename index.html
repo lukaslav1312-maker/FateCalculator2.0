@@ -1036,7 +1036,6 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
           <div><label>Objectif de points visé</label><input type="number" id="gemGoal" value="0" min="0" oninput="calcGem()"></div>
           <div><label>Points actuels</label><input type="number" id="gemCurrent" value="0" min="0" oninput="calcGem()"></div>
           <div><label>Points par stamina</label><input type="number" id="gemPPS" value="50" min="1" oninput="calcGem()"></div>
-          <div><label>Buff de points (%)</label><input type="number" id="gemBuff" value="0" min="0" max="500" oninput="calcGem()"></div>
           <div><label>Stamina déjà disponible</label><input type="number" id="gemStamOwned" value="0" min="0" oninput="calcGem()"></div>
           <div><label>Gemmes déjà disponibles</label><input type="number" id="gemOwned" value="0" min="0" oninput="calcGem()"></div>
         </div>
@@ -1092,7 +1091,6 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
             <input type="number" id="con2AccOwn" value="0" min="0" oninput="calcCon2()" style="border-color:var(--gold-dim);background:rgba(200,148,42,.06);">
           </div>
           <div><label>Puissance construction disponible</label><input type="number" id="con2BldOwn" value="0" min="0" oninput="calcCon2()"></div>
-          <div><label>Buff de points (%)</label><input type="number" id="con2Buff" value="0" min="0" max="500" oninput="calcCon2()"></div>
         </div>
 
         <div id="con2Result" style="color:var(--dim);text-align:center;padding:12px 0;">🏗️ Entre un objectif pour calculer</div>
@@ -1118,11 +1116,10 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
 
         <div class="clash-note">💡 Entre tes ressources disponibles dans chaque section, définis ton objectif global et le calculateur te dit exactement ce qu'il te faut.</div>
 
-        <!-- OBJECTIF GLOBAL + BUFF -->
+        <!-- OBJECTIF GLOBAL -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
           <div><label>🎯 Objectif de points visé</label><input type="number" id="d3Goal" value="0" min="0" oninput="calcDay3()"></div>
           <div><label>Points actuels</label><input type="number" id="d3Current" value="0" min="0" oninput="calcDay3()"></div>
-          <div><label>⚡ Buff de points (%)</label><input type="number" id="d3Buff" value="0" min="0" max="500" oninput="calcDay3()"></div>
         </div>
 
         <!-- SECTION STAMINA -->
@@ -1196,11 +1193,10 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
       <div class="clash-pb">
         <div class="clash-note">🏅 <strong>Légendaire = 20 000 pts</strong> · 💜 <strong>Épique = 3 500 pts</strong> · 🔵 <strong>Rare = 500 pts</strong> — Taux ajustables.</div>
 
-        <!-- OBJECTIF + BUFF -->
+        <!-- OBJECTIF -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
           <div><label>🎯 Objectif de points visé</label><input type="number" id="d4Goal" value="0" min="0" oninput="calcDay4()"></div>
           <div><label>Points actuels</label><input type="number" id="d4Current" value="0" min="0" oninput="calcDay4()"></div>
-          <div><label>⚡ Buff de points (%)</label><input type="number" id="d4Buff" value="0" min="0" max="500" oninput="calcDay4()"></div>
         </div>
 
         <!-- LÉGENDAIRE -->
@@ -1248,11 +1244,10 @@ td input { width:100%; padding:3px 7px; font-size:.88rem; margin:0; }
       <div class="clash-pb">
         <div class="clash-note">🏆 Jour final — combine tes troupes, ta construction et ta stamina pour maximiser tes points !</div>
 
-        <!-- OBJECTIF + BUFF -->
+        <!-- OBJECTIF -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
           <div><label>🎯 Objectif de points visé</label><input type="number" id="d5Goal" value="0" min="0" oninput="calcDay5()"></div>
           <div><label>Points actuels</label><input type="number" id="d5Current" value="0" min="0" oninput="calcDay5()"></div>
-          <div><label>⚡ Buff de points (%)</label><input type="number" id="d5Buff" value="0" min="0" max="500" oninput="calcDay5()"></div>
         </div>
 
         <!-- FORMATION DE TROUPES -->
@@ -4902,10 +4897,9 @@ const GEM_PACKS = [{stam:50,gem:25},{stam:100,gem:50},{stam:500,gem:250},{stam:1
 function calcGem(){
   const goal     = Math.max(0,(parseFloat(document.getElementById('gemGoal').value)||0)-(parseFloat(document.getElementById('gemCurrent').value)||0));
   const pps      = parseFloat(document.getElementById('gemPPS').value)||50;
-  const buff     = parseFloat(document.getElementById('gemBuff').value)||0;
   const stamOwn  = parseFloat(document.getElementById('gemStamOwned').value)||0;
   const gemOwn   = parseFloat(document.getElementById('gemOwned').value)||0;
-  const mult     = 1+buff/100;
+  const mult     = 1;
   const ptsFromStam = Math.floor(stamOwn*pps*mult);
   const ptsFromGems = Math.floor((gemOwn/0.5)*pps*mult); // gems -> stam -> pts
 
@@ -4993,7 +4987,6 @@ function saveGem(){
     localStorage.setItem(`fw_gem_${currentUser}`, JSON.stringify({
       goal:     document.getElementById('gemGoal').value,
       pps:      document.getElementById('gemPPS').value,
-      buff:     document.getElementById('gemBuff').value,
       stamOwned:document.getElementById('gemStamOwned').value,
       gemOwned: document.getElementById('gemOwned').value,
     }));
@@ -5008,7 +5001,6 @@ function loadGem(){
     const p = JSON.parse(s);
     if(p.goal)      document.getElementById('gemGoal').value      = p.goal;
     if(p.pps)       document.getElementById('gemPPS').value       = p.pps;
-    if(p.buff)      document.getElementById('gemBuff').value      = p.buff;
     if(p.stamOwned) document.getElementById('gemStamOwned').value = p.stamOwned;
     if(p.gemOwned)  document.getElementById('gemOwned').value     = p.gemOwned;
   }catch(e){}
@@ -5059,8 +5051,7 @@ function calcCon2(){
   const bldPts  = parseFloat(document.getElementById('con2BldPts').value)||7;
   const accOwn  = parseFloat(document.getElementById('con2AccOwn').value)||0;
   const bldOwn  = parseFloat(document.getElementById('con2BldOwn').value)||0;
-  const buff    = parseFloat(document.getElementById('con2Buff').value)||0;
-  const mult    = 1 + buff/100;
+  const mult    = 1;
 
   // Points from what user has
   const ptsFromAcc = Math.floor(accOwn * accPts * mult);
@@ -5151,7 +5142,6 @@ function saveCon2(){
       bldPts: document.getElementById('con2BldPts').value,
       accOwn: document.getElementById('con2AccOwn').value,
       bldOwn: document.getElementById('con2BldOwn').value,
-      buff:   document.getElementById('con2Buff').value,
     }));
     showSaveMsg('con2SaveStatus');
   }catch(e){ alert('Erreur sauvegarde.'); }
@@ -5167,14 +5157,12 @@ function loadCon2(){
     if(p.bldPts) document.getElementById('con2BldPts').value = p.bldPts;
     if(p.accOwn) document.getElementById('con2AccOwn').value = p.accOwn;
     if(p.bldOwn) document.getElementById('con2BldOwn').value = p.bldOwn;
-    if(p.buff)   document.getElementById('con2Buff').value   = p.buff;
   }catch(e){}
 }
 
 function calcDay3(){
   const goal     = Math.max(0,(parseFloat(document.getElementById('d3Goal').value)||0)-(parseFloat(document.getElementById('d3Current').value)||0));
-  const buff     = parseFloat(document.getElementById('d3Buff').value)||0;
-  const mult     = 1 + buff/100;
+  const mult     = 1;
 
   // Stamina
   const stamPts  = parseFloat(document.getElementById('d3StamPts').value)||50;
@@ -5254,7 +5242,6 @@ function saveDay3(){
   try{
     localStorage.setItem(`fw_day3_${currentUser}`, JSON.stringify({
       goal:    document.getElementById('d3Goal').value,
-      buff:    document.getElementById('d3Buff').value,
       stamPts: document.getElementById('d3StamPts').value,
       stamOwn: document.getElementById('d3StamOwn').value,
       gemOwn:  document.getElementById('d3GemOwn').value,
@@ -5275,15 +5262,14 @@ function loadDay3(){
     const s = localStorage.getItem(`fw_day3_${currentUser}`);
     if(!s) return;
     const p = JSON.parse(s);
-    const ids = ['goal','buff','stamPts','stamOwn','gemOwn','accPts','accOwn','rchPts','rchOwn','advPts','advOwn'];
+    const ids = ['goal','stamPts','stamOwn','gemOwn','accPts','accOwn','rchPts','rchOwn','advPts','advOwn'];
     ids.forEach(k=>{ if(p[k]) document.getElementById('d3'+k.charAt(0).toUpperCase()+k.slice(1)).value = p[k]; });
   }catch(e){}
 }
 
 function calcDay4(){
   const goal    = Math.max(0,(parseFloat(document.getElementById('d4Goal').value)||0)-(parseFloat(document.getElementById('d4Current').value)||0));
-  const buff    = parseFloat(document.getElementById('d4Buff').value)||0;
-  const mult    = 1 + buff/100;
+  const mult    = 1;
 
   const legPts  = parseFloat(document.getElementById('d4LegPts').value)||20000;
   const legOwn  = parseFloat(document.getElementById('d4LegOwn').value)||0;
@@ -5354,7 +5340,6 @@ function saveDay4(){
   try{
     localStorage.setItem(`fw_day4_${currentUser}`, JSON.stringify({
       goal:    document.getElementById('d4Goal').value,
-      buff:    document.getElementById('d4Buff').value,
       legPts:  document.getElementById('d4LegPts').value,
       legOwn:  document.getElementById('d4LegOwn').value,
       epicPts: document.getElementById('d4EpicPts').value,
@@ -5372,7 +5357,7 @@ function loadDay4(){
     const s = localStorage.getItem('fw_day4');
     if(!s) return;
     const p = JSON.parse(s);
-    const map = {goal:'d4Goal',buff:'d4Buff',legPts:'d4LegPts',legOwn:'d4LegOwn',epicPts:'d4EpicPts',epicOwn:'d4EpicOwn',rarePts:'d4RarePts',rareOwn:'d4RareOwn'};
+    const map = {goal:'d4Goal',legPts:'d4LegPts',legOwn:'d4LegOwn',epicPts:'d4EpicPts',epicOwn:'d4EpicOwn',rarePts:'d4RarePts',rareOwn:'d4RareOwn'};
     Object.entries(map).forEach(([k,id])=>{ if(p[k]) document.getElementById(id).value = p[k]; });
   }catch(e){}
 }
@@ -5391,8 +5376,7 @@ function selectD5Tier(t, btn){
 
 function calcDay5(){
   const goal     = Math.max(0,(parseFloat(document.getElementById('d5Goal').value)||0)-(parseFloat(document.getElementById('d5Current').value)||0));
-  const buff     = parseFloat(document.getElementById('d5Buff').value)||0;
-  const mult     = 1 + buff/100;
+  const mult     = 1;
 
   // Formation — pts par troupe × quantité
   const trnPts   = parseFloat(document.getElementById('d5TrnPts').value)||0;
@@ -5437,7 +5421,6 @@ function saveDay5(){
   try{
     localStorage.setItem(`fw_day5_${currentUser}`, JSON.stringify({
       goal:   document.getElementById('d5Goal').value,
-      buff:   document.getElementById('d5Buff').value,
       pT3:    document.getElementById('d5pT3').value,
       pT4:    document.getElementById('d5pT4').value,
       pT5:    document.getElementById('d5pT5').value,
@@ -5463,7 +5446,7 @@ function loadDay5(){
     const s = localStorage.getItem(`fw_day5_${currentUser}`);
     if(!s) return;
     const p = JSON.parse(s);
-    const simple = {goal:'d5Goal',buff:'d5Buff',pT3:'d5pT3',pT4:'d5pT4',pT5:'d5pT5',pT6:'d5pT6',pT7:'d5pT7',trnQty:'d5TrnQty',accPts:'d5AccPts',accOwn:'d5AccOwn',bldPts:'d5BldPts',bldOwn:'d5BldOwn',stamPts:'d5StamPts',stamOwn:'d5StamOwn',gemOwn:'d5GemOwn'};
+    const simple = {goal:'d5Goal',pT3:'d5pT3',pT4:'d5pT4',pT5:'d5pT5',pT6:'d5pT6',pT7:'d5pT7',trnQty:'d5TrnQty',accPts:'d5AccPts',accOwn:'d5AccOwn',bldPts:'d5BldPts',bldOwn:'d5BldOwn',stamPts:'d5StamPts',stamOwn:'d5StamOwn',gemOwn:'d5GemOwn'};
     Object.entries(simple).forEach(([k,id])=>{ if(p[k]!==undefined) document.getElementById(id).value=p[k]; });
     if(p.selTier){
       d5SelTier = p.selTier;
